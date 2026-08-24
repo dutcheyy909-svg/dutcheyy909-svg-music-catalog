@@ -1,0 +1,54 @@
+{
+  "license": {
+    "name": "Dutcheyy Studio Music Catalog Proprietary License",
+    "version": "1.0",
+    "repository": "dutcheyy909-svg/music-catalog",
+    "copyright": {
+      "holder": "Dutcheyy Studio",
+      "notice": "Copyright (c) 2026 Dutcheyy Studio. All rights reserved."
+    },
+    "status": "proprietary",
+    "permissions": {
+      "view": "Authorized users may view the repository and its contents for approved Dutcheyy Studio purposes.",
+      "use": "Use is permitted only with explicit authorization from Dutcheyy Studio.",
+      "modify": "Modification is permitted only for authorized contributors working on approved projects.",
+      "distribute": false,
+      "sublicense": false,
+      "sell": false,
+      "commercial_use": "Commercial use by third parties requires prior written permission from Dutcheyy Studio."
+    },
+    "restrictions": [
+      "Do not copy, reproduce, redistribute, publish, sublicense, sell, or commercially exploit repository contents without prior written permission.",
+      "Do not claim ownership or authorship of material belonging to Dutcheyy Studio or its respective rights holders.",
+      "Do not expose private, confidential, unreleased, or commercially sensitive material.",
+      "Do not remove copyright, attribution, ownership, or rights-management information.",
+      "Do not use music, lyrics, recordings, stems, artwork, metadata, or other creative assets as training data for machine-learning or generative-AI systems without explicit written authorization."
+    ],
+    "music_rights": {
+      "statement": "Repository access does not grant any copyright, publishing, master recording, synchronization, mechanical, performance, neighboring, distribution, or other music rights.",
+      "sync_license": "No synchronization rights are granted by this license.",
+      "master_license": "No master-use rights are granted by this license.",
+      "publishing_license": "No publishing rights are granted by this license.",
+      "lyrics_license": "Lyrics remain subject to the rights of their respective copyright owners.",
+      "third_party_material": "Third-party materials remain subject to the rights and licenses of their respective owners."
+    },
+    "confidentiality": {
+      "enabled": true,
+      "statement": "Unreleased recordings, stems, lyrics, project information, credentials, private metadata, client information, and other non-public materials must be treated as confidential unless Dutcheyy Studio explicitly authorizes disclosure."
+    },
+    "ownership": {
+      "repository": "The repository structure, original documentation, code, and other original materials created by Dutcheyy Studio remain the property of Dutcheyy Studio unless otherwise stated.",
+      "creative_assets": "Individual music and creative assets may have separate writers, producers, performers, publishers, labels, clients, collaborators, or other rights holders. Inclusion in this repository does not alter those ownership rights."
+    },
+    "no_warranty": {
+      "enabled": true,
+      "statement": "The repository and its contents are provided as-is without warranties of any kind to the maximum extent permitted by applicable law."
+    },
+    "termination": "Authorization to access or use repository materials may be withdrawn when permitted by applicable agreements or law. Upon termination, the user must cease unauthorized use and possession of protected materials.",
+    "contact": {
+      "organization": "Dutcheyy Studio",
+      "repository": "dutcheyy909-svg/music-catalog"
+    },
+    "notice": "Access to this repository does not imply permission to exploit any music, recordings, compositions, lyrics, metadata, software, or other intellectual property contained within it."
+  }
+}
