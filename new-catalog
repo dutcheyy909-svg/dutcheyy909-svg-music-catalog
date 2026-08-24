@@ -1,0 +1,19 @@
+music-catalog/
+├── sync_cues/
+├── vocal_chains/
+├── stems_metadata/
+├── lyrics/
+├── workflows/
+├── releases/
+└── projects/
+mkdir -p sync_cues vocal_chains stems_metadata lyrics workflows releases projects 
+touch sync_cues/.gitkeep \
+      vocal_chains/.gitkeep \
+      stems_metadata/.gitkeep \
+      lyrics/.gitkeep \
+      workflows/.gitkeep \
+      releases/.gitkeep \
+      projects/.gitkeep 
+git add .
+git commit -m "Add music catalog folder structure"
+git push
