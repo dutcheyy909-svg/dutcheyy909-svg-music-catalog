@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Sync Cue Schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "one_stop": {
+      "type": ["string", "null"]
+    },
+    "master_control": {
+      "type": ["string", "null"]
+    },
+    "publishing_control": {
+      "type": ["string", "null"]
+    },
+    "rights_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "partially_verified",
+        "verified"
+      ]
+    }
+  },
+  "required": ["id", "title", "rights_status"]
+}
