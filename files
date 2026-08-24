@@ -26,5 +26,4 @@ music-catalog/
         releases/.gitkeep \
         projects/.gitkeep
 
-git commit -m "Add gitkeep files for catalog directories"
-git push
+git commit -m "Add gitkeep files 
