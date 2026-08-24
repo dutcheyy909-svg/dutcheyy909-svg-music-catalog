@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dutcheyy.studio/schemas/release.schema.json",
+  "title": "Dutcheyy Studio Release",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "release_id",
+    "title",
+    "release_type",
+    "status",
+    "project_ids"
+  ],
+  "properties": {
+    "release_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "release_type": {
+      "type": "string",
+      "enum": [
+        "single",
+        "ep",
+        "album",
+        "compilation",
+        "other"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planning",
+        "scheduled",
+        "delivered",
+        "released",
+        "cancelled"
+      ]
+    },
+    "primary_artist": {
+      "type": "string"
+    },
+    "project_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "release_date": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "upc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "label": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "distributor": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "catalog_number": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "copyright_year": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1900
+    },
+    "copyright_holder": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "phonographic_year": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1900
+    },
+    "phonographic_holder": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "rights_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "partially_verified",
+        "verified"
+      ]
+    },
+    "artwork": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "platform_links": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dutcheyy.studio/schemas/sync_cue.schema.json",
+  "title": "Dutcheyy Studio Sync Cue",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cue_id",
+    "project_id",
+    "title",
+    "status"
+  ],
+  "properties": {
+    "cue_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "available",
+        "submitted",
+        "shortlisted",
+        "placed",
+        "licensed",
+        "unavailable"
+      ]
+    },
+    "instrumental_available": {
+      "type": "boolean"
+    },
+    "clean_version_available": {
+      "type": "boolean"
+    },
+    "stems_available": {
+      "type": "boolean"
+    },
+    "one_stop": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "master_control": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "publishing_control": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "rights_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "partially_verified",
+        "verified"
+      ]
+    },
+    "genres": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "moods": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "themes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "similar_artists": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "lyrical_content": {
+      "type": "string"
+    },
+    "territories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "usage_restrictions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "placements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "production": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "media_type": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}"rights_status": "unverified"
