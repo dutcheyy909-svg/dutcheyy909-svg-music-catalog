@@ -1,0 +1,30 @@
+music-catalog/
+├── sync_cues/
+│   └── .gitkeep
+├── vocal_chains/
+│   └── .gitkeep
+├── stems_metadata/
+│   └── .gitkeep
+├── lyrics/
+│   └── .gitkeep
+├── workflows/
+│   └── .gitkeep
+├── releases/
+│   └── .gitkeep
+└── projects/
+    └── .gitkeeptouch sync_cues/.gitkeep \
+      vocal_chains/.gitkeep \
+      stems_metadata/.gitkeep \
+      lyrics/.gitkeep \
+      workflows/.gitkeep \
+      releases/.gitkeep \
+      projects/.gitkeepgit add sync_cues/.gitkeep \
+        vocal_chains/.gitkeep \
+        stems_metadata/.gitkeep \
+        lyrics/.gitkeep \
+        workflows/.gitkeep \
+        releases/.gitkeep \
+        projects/.gitkeep
+
+git commit -m "Add gitkeep files for catalog directories"
+git push
