@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dutcheyy.studio/schemas/project.schema.json",
+  "title": "Dutcheyy Studio Project",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project_id",
+    "title",
+    "project_type",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_type": {
+      "type": "string",
+      "enum": [
+        "song",
+        "single",
+        "ep",
+        "album",
+        "sync",
+        "client",
+        "collaboration",
+        "other"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "idea",
+        "writing",
+        "production",
+        "recording",
+        "mixing",
+        "mastering",
+        "ready",
+        "released",
+        "archived"
+      ]
+    },
+    "primary_artist": {
+      "type": "string"
+    },
+    "featured_artists": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "writers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/contributor"
+      }
+    },
+    "producers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/contributor"
+      }
+    },
+    "bpm": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "key": {
+      "type": "string"
+    },
+    "time_signature": {
+      "type": "string",
+      "pattern": "^[0-9]+/[0-9]+$"
+    },
+    "duration_seconds": {
+      "type": "number",
+      "minimum": 0
+    },
+    "genre": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "mood": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "language": {
+      "type": "string"
+    },
+    "explicit": {
+      "type": "boolean"
+    },
+    "isrc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "catalog_number": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "release_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "lyrics_file": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stems_metadata_file": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "vocal_chain_file": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sync_cue_file": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "contributor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string"
+        },
+        "ipi": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pro": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "split_percent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    }
+  }
+}
