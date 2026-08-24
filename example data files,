@@ -1,0 +1,211 @@
+{
+  "project_id": "dutcheyy-track-001",
+  "title": "Example Track",
+  "project_type": "song",
+  "status": "production",
+  "primary_artist": "Dutcheyy",
+  "featured_artists": [],
+  "writers": [
+    {
+      "name": "Dutcheyy",
+      "role": "writer",
+      "ipi": null,
+      "pro": null,
+      "split_percent": 100
+    }
+  ],
+  "producers": [
+    {
+      "name": "Dutcheyy",
+      "role": "producer",
+      "ipi": null,
+      "pro": null,
+      "split_percent": 100
+    }
+  ],
+  "bpm": 120,
+  "key": "C minor",
+  "time_signature": "4/4",
+  "duration_seconds": 210,
+  "genre": [
+    "Hip-Hop"
+  ],
+  "mood": [
+    "Dark",
+    "Atmospheric"
+  ],
+  "language": "English",
+  "explicit": false,
+  "isrc": null,
+  "catalog_number": null,
+  "release_id": "release-001",
+  "lyrics_file": "lyrics/dutcheyy-track-001.txt",
+  "stems_metadata_file": "stems_metadata/example_stems.json",
+  "vocal_chain_file": "vocal_chains/example_vocal_chain.json",
+  "sync_cue_file": "sync_cues/example_sync_cue.json",
+  "notes": "Example catalog project record.",
+  "tags": [
+    "catalog",
+    "sync-ready"
+  ],
+  "created_at": "2026-08-24T14:50:00+01:00",
+  "updated_at": "2026-08-24T14:50:00+01:00"{
+  "release_id": "release-001",
+  "title": "Example Track",
+  "release_type": "single",
+  "status": "planning",
+  "primary_artist": "Dutcheyy",
+  "project_ids": [
+    "dutcheyy-track-001"
+  ],
+  "release_date": null,
+  "upc": null,
+  "label": "Dutcheyy Studio",
+  "distributor": null,
+  "catalog_number": null,
+  "copyright_year": 2026,
+  "copyright_holder": "Dutcheyy Studio",
+  "phonographic_year": 2026,
+  "phonographic_holder": "Dutcheyy Studio",
+  "artwork": null,
+  "platform_links": {},
+  "notes": "Example release record."
+}
+}{
+  "project_id": "dutcheyy-track-001",
+  "version": "1.0",
+  "sample_rate_hz": 48000,
+  "bit_depth": 24,
+  "format": "wav",
+  "start_time": "00:00:00",
+  "stems": [
+    {
+      "stem_id": "stem-001",
+      "name": "Lead Vocal",
+      "category": "lead_vocals",
+      "file": "audio/lead_vocal.wav",
+      "channels": 1,
+      "processed": true,
+      "muted": false,
+      "notes": "Processed lead vocal stem."
+    },
+    {
+      "stem_id": "stem-002",
+      "name": "Drums",
+      "category": "drums",
+      "file": "audio/drums.wav",
+      "channels": 2,
+      "processed": true,
+      "muted": false,
+      "notes": "Stereo drum stem."
+    },
+    {
+      "stem_id": "stem-003",
+      "name": "Bass",
+      "category": "bass",
+      "file": "audio/bass.wav",
+      "channels": 2,
+      "processed": true,
+      "muted": false,
+      "notes": "Bass stem."
+    }
+  ],
+  "created_at": "2026-08-24T14:50:00+01:00"
+{
+  "cue_id": "cue-001",
+  "project_id": "dutcheyy-track-001",
+  "title": "Example Track",
+  "status": "available",
+  "instrumental_available": true,
+  "clean_version_available": true,
+  "stems_available": true,
+  "one_stop": null,
+  "master_control": "Dutcheyy Studio",
+  "publishing_control": null,
+  "genres": [
+    "Hip-Hop"
+  ],
+  "moods": [
+    "Dark",
+    "Atmospheric"
+  ],
+  "themes": [
+    "Ambition",
+    "Confidence"
+  ],
+  "similar_artists": [],
+  "lyrical_content": "Ambition, progress and determination.",
+  "territories": [
+    "Worldwide"
+  ],
+  "usage_restrictions": [],
+  "placements": [],
+  "notes": "Example sync-ready catalog entry."
+}
+
+{
+  "chain_id": "vocal-chain-001",
+  "project_id": "dutcheyy-track-001",
+  "name": "Dutcheyy Lead Vocal",
+  "vocal_type": "lead",
+  "daw": null,
+  "input_chain": {
+    "microphone": null,
+    "preamp": null,
+    "interface": null,
+    "notes": "Add the actual recording hardware when documented."
+  },
+  "stages": [
+    {
+      "order": 1,
+      "type": "pitch_correction",
+      "plugin": null,
+      "preset": null,
+      "settings": {},
+      "bypassed": false,
+      "notes": "Pitch correction stage."
+    },
+    {
+      "order": 2,
+      "type": "eq",
+      "plugin": null,
+      "preset": null,
+      "settings": {},
+      "bypassed": false,
+      "notes": "Corrective EQ stage."
+    },
+    {
+      "order": 3,
+      "type": "compression",
+      "plugin": null,
+      "preset": null,
+      "settings": {},
+      "bypassed": false,
+      "notes": "Main vocal compression stage."
+    },
+    {
+      "order": 4,
+      "type": "de_esser",
+      "plugin": null,
+      "preset": null,
+      "settings": {},
+      "bypassed": false,
+      "notes": "Sibilance control."
+    }
+  ],
+  "sends": [
+    {
+      "name": "Vocal Reverb",
+      "effect": "reverb",
+      "level_db": -18,
+      "notes": "Example reverb send."
+    },
+    {
+      "name": "Vocal Delay",
+      "effect": "delay",
+      "level_db": -20,
+      "notes": "Example delay send."
+    }
+  ],
+  "notes": "Template vocal chain. Replace placeholder values with actual session settings."
+}}
