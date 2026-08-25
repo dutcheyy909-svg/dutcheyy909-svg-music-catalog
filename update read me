@@ -1,0 +1,87 @@
+"""
+update_readme.py
+Automatically updates a README.md section based on repository contents.
+
+Usage:
+    python update_readme.py
+"""
+
+import os
+from pathlib import Path
+
+README_PATH = Path("README.md")
+
+# Markers inside README.md
+START = "<!-- AUTO-GENERATED-START -->"
+END = "<!-- AUTO-GENERATED-END -->"
+
+
+def get_repo_structure(base="."):
+    """
+    Returns a simple tree of the repo structure.
+    """
+    tree_lines = []
+    for root, dirs, files in os.walk(base):
+        # Skip hidden folders and .git
+        dirs[:] = [d for d in dirs if not d.startswith(".") and d != ".git"]
+
+        level = root.replace(base, "").count(os.sep)
+        indent = "  " * level
+        folder = os.path.basename(root) if root != "." else "."
+
+        tree_lines.append(f"{indent}- {folder}/")
+
+        for f in files:
+            if not f.startswith("."):
+                tree_lines.append(f"{indent}  - {f}")
+
+    return "\n".join(tree_lines)
+
+
+def generate_section():
+    """
+    Creates the auto-generated README block.
+    """
+    structure = get_repo_structure()
+    return f"""
+## Repository Structure (Auto‑Generated)
+
+_Last updated automatically._
+""".strip()
+
+
+def update_readme():
+    """
+    Inserts or replaces the auto-generated block inside README.md.
+    """
+    if not README_PATH.exists():
+        raise FileNotFoundError("README.md not found in repo root.")
+
+    content = README_PATH.read_text()
+
+    new_section = generate_section()
+
+    if START in content and END in content:
+        # Replace existing block
+        before = content.split(START)[0]
+        after = content.split(END)[1]
+        updated = f"{before}{START}\n{new_section}\n{END}{after}"
+    else:
+        # Append new block at bottom
+        updated = f"{content}\n\n{START}\n{new_section}\n{END}\n"
+
+    README_PATH.write_text(updated)
+    print("README updated successfully.")
+
+
+if __name__ == "__main__":
+    update_readme()
+# My Repo
+
+Some intro text...
+
+<!-- AUTO-GENERATED-START -->
+<!-- AUTO-GENERATED-END -->
+- name: Update README
+  run: python update_readme.py
+
