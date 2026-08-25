@@ -363,19 +363,38 @@ def analyze_audio_features(audio_path):
 
 
 def infer_mood(bpm, brightness):
-    if bpm > 120 and brightness > 3000:
-        return "energetic"
-    if bpm > 120 and brightness < 3000:
-        return "uplifting"
-    if bpm < 80 and brightness < 2500:
-        return "calm"
-    if bpm < 80 and brightness > 2500:
-        return "dark"
-    if 80 <= bpm <= 120 and brightness < 2500:
-        return "warm"
-    if 80 <= bpm <= 120 and brightness > 2500:
-        return "driving"
-    return "neutral"
+    """
+    Infer mood based on BPM and brightness (spectral centroid).
+    
+    Mood logic:
+    - High BPM (>120) + High brightness (>3000Hz) → energetic
+    - High BPM (>120) + Low brightness (≤3000Hz) → uplifting
+    - Low BPM (<80) + Low brightness (≤2500Hz) → calm
+    - Low BPM (<80) + High brightness (>2500Hz) → dark
+    - Mid BPM (80-120) + Low brightness (≤2500Hz) → warm
+    - Mid BPM (80-120) + High brightness (>2500Hz) → driving
+    - Default → neutral
+    """
+    # Fast tracks (BPM > 120)
+    if bpm > 120:
+        if brightness > 3000:
+            return "energetic"
+        else:
+            return "uplifting"
+    
+    # Slow tracks (BPM < 80)
+    elif bpm < 80:
+        if brightness < 2500:
+            return "calm"
+        else:
+            return "dark"
+    
+    # Mid-tempo tracks (80 ≤ BPM ≤ 120)
+    else:
+        if brightness < 2500:
+            return "warm"
+        else:
+            return "driving"
 
 
 # ---------------------------------------------------------
