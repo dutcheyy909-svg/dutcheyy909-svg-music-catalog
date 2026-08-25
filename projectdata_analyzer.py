@@ -357,38 +357,26 @@ def export_ringo_metadata(track_name, metadata, audio_features=None):
         "recommended_scenes": metadata.get("recommended_scenes", []),
         "rights": metadata.get("usage_rights", "100% owned"),
         "composer": metadata.get("composer", ""),
-        "publisher": metadata.get("publisher", "")import csv
+        "publisher": metadata.get("publisher", "")
+    }
+def export_ringo_metadata(track_name, metadata, audio_features=None):
+    """Return Ringo-ready metadata dict."""
+    tags = generate_sync_tags(metadata, audio_features)
 
-def export_spotify_features_csv(all_audio_features, output="SpotifyFeatures.csv"):
-    """
-    Export full Spotify-style audio features for all tracks into a CSV file.
-    all_audio_features should be a dict: {track_name: feature_dict}
-    """
+    return {
+        "name": metadata.get("title", track_name),
+        "bpm": audio_features.get("bpm") if audio_features else metadata.get("bpm"),
+        "key": metadata.get("key", ""),
+        "energy": metadata.get("energy_level", ""),
+        "mood": audio_features.get("mood") if audio_features else metadata.get("mood", ""),
+        "genre": metadata.get("genre", ""),
+        "tags": tags,
+        "recommended_scenes": metadata.get("recommended_scenes", []),
+        "rights": metadata.get("usage_rights", "100% owned"),
+        "composer": metadata.get("composer", ""),
+        "publisher": metadata.get("publisher", "")
+    }
 
-    # Define CSV columns
-    fieldnames = [
-        "track",
-        "bpm",
-        "brightness",
-        "mood",
-        "energy",
-        "danceability",
-        "acousticness",
-        "movement",
-        "valence",
-        "instrumentalness",
-        "liveness"
-    ]
 
-    with open(output, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-
-        for track_name, feats in all_audio_features.items():
-            row = {"track": track_name}
-            row.update(feats)
-            writer.writerow(row)
-
-    return output
 
     }
