@@ -1,3 +1,15 @@
+spotify_export = {}
+
+for f in extracted:
+    audio_files = list(f.glob("*.wav")) + list(f.glob("*.mp3"))
+
+    for audio in audio_files:
+        track_name = audio.stem
+        audio_features = analyze_audio_features(audio)
+        spotify_export[track_name] = audio_features
+
+csv_path = export_spotify_features_csv(spotify_export)
+print(f"📄 Exported Spotify-style CSV: {csv_path}")
 import json
 import csv
 from pathlib import Path
