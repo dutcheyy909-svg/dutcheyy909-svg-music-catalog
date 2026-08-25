@@ -4,7 +4,11 @@ from projectdata_analyzer import (
     combine_all_metadata,
     detect_duplicates,
     generate_report,
-    generate_sync_tags   # ← ADD THIS
+    generate_sync_tags,
+    analyze_audio_features,
+    export_songtradr_metadata,
+    export_audiosparx_metadata,
+    export_ringo_metadata
 )
 
 import zipfile
@@ -74,22 +78,41 @@ def run(folder="."):
     for f in extracted:
         inspect_extracted_folder(f)
 
-        # Analyzer functions
         print("\n📌 File types:", detect_file_types(f))
         print("📌 Summary:", summarize_metadata(f))
 
-    # Generate sync tags for each folder's metadata
     combined_json, _ = combine_all_metadata(extracted)
-    for name, data in combined_json.items():
-        tags = generate_sync_tags(data)
-        print(f"🎵 Sync Tags for {name}: {tags}")
 
-    # Generate final report
+    # Audio analysis + sync tags + library metadata
+    for f in extracted:
+        audio_files = list(f.glob("*.wav")) + list(f.glob("*.mp3"))
+
+        for audio in audio_files:
+            print(f"\n🎧 Analyzing audio: {audio.name}")
+            audio_features = analyze_audio_features(audio)
+
+            print(f"   BPM: {audio_features.get('bpm')}")
+            print(f"   Brightness: {audio_features.get('brightness')}")
+            print(f"   Mood: {audio_features.get('mood')}")
+
+            track_name = audio.stem
+            metadata = combined_json.get(track_name, {})
+
+            tags = generate_sync_tags(metadata, audio_features)
+            print(f"   🎵 Sync Tags: {tags}")
+
+            # Export formats
+            songtradr_meta = export_songtradr_metadata(track_name, metadata, audio_features)
+            audiosparx_meta = export_audiosparx_metadata(track_name, metadata, audio_features)
+            ringo_meta = export_ringo_metadata(track_name, metadata, audio_features)
+
+            print("\n🎼 Songtradr:", songtradr_meta)
+            print("🎧 AudioSparx:", audiosparx_meta)
+            print("🎬 Ringo:", ringo_meta)
+
     report_path = generate_report(extracted)
     print(f"\n📄 Analysis report generated: {report_path}")
 
 
 if __name__ == "__main__":
-    run(".")
-
     run(".")
