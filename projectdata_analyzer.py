@@ -240,5 +240,60 @@ def generate_report(extracted_folders, output="ProjectData_Report.txt"):
         for name, data in combined_json.items():
             tags = generate_sync_tags(data)
             f.write(f" - {name}: {', '.join(tags)}\n")
+def export_songtradr_metadata(track_name, metadata, audio_features=None):
+    """Return Songtradr-ready metadata dict."""
+    tags = generate_sync_tags(metadata, audio_features)
+
+    return {
+        "title": metadata.get("title", track_name),
+        "description": metadata.get("description", ""),
+        "bpm": audio_features.get("bpm") if audio_features else metadata.get("bpm"),
+        "key": metadata.get("key", ""),
+        "mood": audio_features.get("mood") if audio_features else metadata.get("mood", ""),
+        "genre": metadata.get("genre", ""),
+        "subgenre": metadata.get("subgenre", ""),
+        "tags": tags,
+        "instruments": metadata.get("instruments", ""),
+        "rights": metadata.get("usage_rights", "100% owned"),
+        "composer": metadata.get("composer", ""),
+        "publisher": metadata.get("publisher", ""),
+        "pro": metadata.get("pro_affiliation", "")
+    }
+def export_audiosparx_metadata(track_name, metadata, audio_features=None):
+    """Return AudioSparx-ready metadata dict."""
+    tags = generate_sync_tags(metadata, audio_features)
+
+    return {
+        "TrackTitle": metadata.get("title", track_name),
+        "Description": metadata.get("description", ""),
+        "Genre": metadata.get("genre", ""),
+        "SubGenre": metadata.get("subgenre", ""),
+        "Tempo": audio_features.get("bpm") if audio_features else metadata.get("bpm"),
+        "Mood": audio_features.get("mood") if audio_features else metadata.get("mood", ""),
+        "Keywords": ", ".join(tags),
+        "Instruments": metadata.get("instruments", ""),
+        "Composer": metadata.get("composer", ""),
+        "Publisher": metadata.get("publisher", ""),
+        "PRO": metadata.get("pro_affiliation", ""),
+        "StemsAvailable": metadata.get("stems_available", True),
+        "VersionsAvailable": metadata.get("versions_available", [])
+    }
+def export_ringo_metadata(track_name, metadata, audio_features=None):
+    """Return Ringo-ready metadata dict."""
+    tags = generate_sync_tags(metadata, audio_features)
+
+    return {
+        "name": metadata.get("title", track_name),
+        "bpm": audio_features.get("bpm") if audio_features else metadata.get("bpm"),
+        "key": metadata.get("key", ""),
+        "energy": metadata.get("energy_level", ""),
+        "mood": audio_features.get("mood") if audio_features else metadata.get("mood", ""),
+        "genre": metadata.get("genre", ""),
+        "tags": tags,
+        "recommended_scenes": metadata.get("recommended_scenes", []),
+        "rights": metadata.get("usage_rights", "100% owned"),
+        "composer": metadata.get("composer", ""),
+        "publisher": metadata.get("publisher", "")
+    }
 
     return output
