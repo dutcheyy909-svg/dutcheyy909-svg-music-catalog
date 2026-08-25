@@ -2,6 +2,8 @@ import json
 import csv
 from pathlib import Path
 from collections import defaultdict
+import librosa
+import numpy as np
 
 # ---------------------------------------------------------
 #  Detect file types inside extracted ProjectData folders
@@ -21,58 +23,6 @@ def detect_file_types(folder):
 # ---------------------------------------------------------
 #  Summarise metadata from JSON + CSV files
 # ---------------------------------------------------------
-def generate_sync_tags(metadata):
-    """
-    Generate sync‑licensing tags based on JSON/CSV metadata.
-    Accepts a dict of metadata (combined_json[file] or a CSV row).
-    Returns a list of sync‑ready tags.
-    """
-
-    tags = []
-
-    # Genre-based tags
-    genre = metadata.get("genre", "").lower()
-    if "edm" in genre:
-        tags += ["energetic", "modern", "sports", "gaming", "upbeat"]
-    if "trap" in genre:
-        tags += ["dark", "urban", "gritty", "hip-hop", "intense"]
-    if "lofi" in genre:
-        tags += ["chill", "study", "relaxed", "soft beats"]
-    if "piano" in genre or "emotional" in genre:
-        tags += ["emotional", "cinematic", "heartfelt", "film", "advertising"]
-
-    # Mood-based tags
-    mood = metadata.get("mood", "").lower()
-    if "uplifting" in mood:
-        tags += ["positive", "corporate", "advertising", "feel-good"]
-    if "tension" in mood:
-        tags += ["suspense", "crime", "drama", "trailer"]
-
-    # Instrument-based tags
-    instruments = metadata.get("instruments", "").lower()
-    if "guitar" in instruments:
-        tags += ["organic", "warm", "indie"]
-    if "synth" in instruments:
-        tags += ["electronic", "futuristic", "digital"]
-
-    # BPM-based tags
-    bpm = metadata.get("bpm")
-    if bpm:
-        try:
-            bpm = int(bpm)
-            if bpm < 70:
-                tags.append("slow")
-            elif bpm < 110:
-                tags.append("mid-tempo")
-            else:
-                tags.append("fast")
-        except:
-            pass
-
-    # Remove duplicates
-    tags = list(set(tags))
-
-    return tags
 
 def summarize_metadata(folder):
     folder = Path(folder)
@@ -103,6 +53,69 @@ def summarize_metadata(folder):
                 summary["csv"][file.name] = {"error": str(e)}
 
     return summary
+
+
+# ---------------------------------------------------------
+#  Sync Licensing Tag Generator (metadata-based)
+# ---------------------------------------------------------
+
+def generate_sync_tags(metadata, audio_features=None):
+    tags = []
+
+    # Genre-based tags
+    genre = metadata.get("genre", "").lower()
+    if "edm" in genre:
+        tags += ["energetic", "modern", "sports", "gaming", "upbeat"]
+    if "trap" in genre:
+        tags += ["dark", "urban", "gritty", "hip-hop", "intense"]
+    if "lofi" in genre:
+        tags += ["chill", "study", "relaxed", "soft beats"]
+    if "piano" in genre or "emotional" in genre:
+        tags += ["emotional", "cinematic", "heartfelt", "film", "advertising"]
+
+    # Mood-based tags
+    mood = metadata.get("mood", "").lower()
+    if "uplifting" in mood:
+        tags += ["positive", "corporate", "advertising", "feel-good"]
+    if "tension" in mood:
+        tags += ["suspense", "crime", "drama", "trailer"]
+
+    # Instrument-based tags
+    instruments = metadata.get("instruments", "").lower()
+    if "guitar" in instruments:
+        tags += ["organic", "warm", "indie"]
+    if "synth" in instruments:
+        tags += ["electronic", "futuristic", "digital"]
+
+    # BPM-based tags (metadata)
+    bpm = metadata.get("bpm")
+    if bpm:
+        try:
+            bpm = int(bpm)
+            if bpm < 70:
+                tags.append("slow")
+            elif bpm < 110:
+                tags.append("mid-tempo")
+            else:
+                tags.append("fast")
+        except:
+            pass
+
+    # Audio-analysis tags
+    if audio_features:
+        if audio_features.get("mood"):
+            tags.append(audio_features["mood"])
+
+        if audio_features.get("bpm"):
+            bpm = audio_features["bpm"]
+            if bpm < 70:
+                tags.append("slow")
+            elif bpm < 110:
+                tags.append("mid-tempo")
+            else:
+                tags.append("fast")
+
+    return list(set(tags))
 
 
 # ---------------------------------------------------------
@@ -160,6 +173,51 @@ def detect_duplicates(combined_csv, key="id"):
 
 
 # ---------------------------------------------------------
+#  Audio Analysis (BPM, brightness, mood)
+# ---------------------------------------------------------
+
+def analyze_audio_features(audio_path):
+    try:
+        y, sr = librosa.load(audio_path, sr=None)
+
+        # BPM
+        tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+        bpm = int(tempo)
+
+        # Brightness (spectral centroid)
+        centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
+        brightness = float(np.mean(centroid))
+
+        # Mood inference
+        mood = infer_mood(bpm, brightness)
+
+        return {
+            "bpm": bpm,
+            "brightness": brightness,
+            "mood": mood
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def infer_mood(bpm, brightness):
+    if bpm > 120 and brightness > 3000:
+        return "energetic"
+    if bpm > 120 and brightness < 3000:
+        return "uplifting"
+    if bpm < 80 and brightness < 2500:
+        return "calm"
+    if bpm < 80 and brightness > 2500:
+        return "dark"
+    if 80 <= bpm <= 120 and brightness < 2500:
+        return "warm"
+    if 80 <= bpm <= 120 and brightness > 2500:
+        return "driving"
+    return "neutral"
+
+
+# ---------------------------------------------------------
 #  Generate a simple text report
 # ---------------------------------------------------------
 
@@ -177,9 +235,10 @@ def generate_report(extracted_folders, output="ProjectData_Report.txt"):
 
         f.write("\nCSV Rows Combined: " + str(len(combined_csv)) + "\n")
         f.write("Duplicate Entries: " + str(len(duplicates)) + "\n")
-f.write("\nSync Licensing Tags:\n")
-for name, data in combined_json.items():
-    tags = generate_sync_tags(data)
-    f.write(f" - {name}: {', '.join(tags)}\n")
+
+        f.write("\nSync Licensing Tags:\n")
+        for name, data in combined_json.items():
+            tags = generate_sync_tags(data)
+            f.write(f" - {name}: {', '.join(tags)}\n")
 
     return output
