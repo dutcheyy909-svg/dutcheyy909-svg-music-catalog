@@ -3,7 +3,8 @@ from projectdata_analyzer import (
     summarize_metadata,
     combine_all_metadata,
     detect_duplicates,
-    generate_report
+    generate_report,
+    generate_sync_tags   # ← ADD THIS
 )
 
 import zipfile
@@ -77,10 +78,18 @@ def run(folder="."):
         print("\n📌 File types:", detect_file_types(f))
         print("📌 Summary:", summarize_metadata(f))
 
+    # Generate sync tags for each folder's metadata
+    combined_json, _ = combine_all_metadata(extracted)
+    for name, data in combined_json.items():
+        tags = generate_sync_tags(data)
+        print(f"🎵 Sync Tags for {name}: {tags}")
+
     # Generate final report
     report_path = generate_report(extracted)
     print(f"\n📄 Analysis report generated: {report_path}")
 
 
 if __name__ == "__main__":
+    run(".")
+
     run(".")
