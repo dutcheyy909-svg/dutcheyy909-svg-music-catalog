@@ -117,6 +117,55 @@ def generate_sync_tags(metadata, audio_features=None):
 
     return list(set(tags))
 
+def analyze_valence(y, sr):
+    """
+    Rough valence estimate (happy vs sad) using key + brightness.
+    """
+    # Brightness
+    centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
+    brightness = float(np.mean(centroid))
+
+    # Chroma (key-ish)
+    chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+    major_energy = float(np.mean(chroma[0:6]))   # C–F#
+    minor_energy = float(np.mean(chroma[6:12]))  # G–B
+
+    key_bias = major_energy - minor_energy
+
+    # Combine
+    valence = (brightness / 5000.0) * 0.6 + (key_bias) * 0.4
+    return max(0.0, min(valence, 1.0))
+
+
+def analyze_instrumentalness(y, sr):
+    """
+    Approximate instrumentalness: less vocal‑like energy → more instrumental.
+    """
+    # MFCCs: vocal presence often shows strong mid‑range MFCCs
+    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+    mid_band = mfcc[4:9]  # rough vocal region
+    mid_energy = float(np.mean(np.abs(mid_band)))
+
+    instrumentalness = 1.0 - (mid_energy / 200.0)
+    return max(0.0, min(instrumentalness, 1.0))
+
+
+def analyze_liveness(y, sr):
+    """
+    Approximate liveness: more transient, noisy, room‑like → higher liveness.
+    """
+    # Onset density
+    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+    onset_density = float(np.mean(onset_env))
+
+    # High‑frequency energy
+    spec = librosa.stft(y)
+    freqs = librosa.fft_frequencies(sr=sr)
+    high_band = spec[freqs > 6000]
+    high_energy = float(np.mean(np.abs(high_band))) if high_band.size > 0 else 0.0
+
+    liveness = (onset_density / 5.0) * 0.6 + (high_energy / 5.0) * 0.4
+    return max(0.0, min(liveness, 1.0))
 
 # ---------------------------------------------------------
 #  Combine all JSON + CSV into unified structures
@@ -175,7 +224,6 @@ def detect_duplicates(combined_csv, key="id"):
 # ---------------------------------------------------------
 #  Audio Analysis (BPM, brightness, mood)
 # ---------------------------------------------------------
-
 def analyze_audio_features(audio_path):
     try:
         y, sr = librosa.load(audio_path, sr=None)
@@ -184,21 +232,37 @@ def analyze_audio_features(audio_path):
         tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
         bpm = int(tempo)
 
-        # Brightness (spectral centroid)
+        # Brightness
         centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
         brightness = float(np.mean(centroid))
 
-        # Mood inference
+        # Mood
         mood = infer_mood(bpm, brightness)
+
+        # Energy + danceability
+        extra = analyze_energy_danceability(y, sr)
+
+        # Spotify‑style extras
+        valence = analyze_valence(y, sr)
+        instrumentalness = analyze_instrumentalness(y, sr)
+        liveness = analyze_liveness(y, sr)
 
         return {
             "bpm": bpm,
             "brightness": brightness,
-            "mood": mood
+            "mood": mood,
+            "energy": extra["energy"],
+            "danceability": extra["danceability"],
+            "acousticness": extra["acousticness"],
+            "movement": extra["movement"],
+            "valence": valence,
+            "instrumentalness": instrumentalness,
+            "liveness": liveness
         }
 
     except Exception as e:
         return {"error": str(e)}
+
 
 
 def infer_mood(bpm, brightness):
@@ -295,5 +359,3 @@ def export_ringo_metadata(track_name, metadata, audio_features=None):
         "composer": metadata.get("composer", ""),
         "publisher": metadata.get("publisher", "")
     }
-
-    return output
