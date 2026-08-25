@@ -111,8 +111,8 @@ def run(folder="."):
             print("🎬 Ringo:", ringo_meta)
 
     report_path = generate_report(extracted)
-    print(f"\n📄 Analysis report generated: {report_path}")
-
-if __name__ == "__main__":
+    print(f"\n📄 Analysis report generated: {report_path}") 
+    if __name__ == "__main__":
     run(".")
+
 
