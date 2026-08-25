@@ -1,15 +1,3 @@
-spotify_export = {}
-
-for f in extracted:
-    audio_files = list(f.glob("*.wav")) + list(f.glob("*.mp3"))
-
-    for audio in audio_files:
-        track_name = audio.stem
-        audio_features = analyze_audio_features(audio)
-        spotify_export[track_name] = audio_features
-
-csv_path = export_spotify_features_csv(spotify_export)
-print(f"📄 Exported Spotify-style CSV: {csv_path}")
 import json
 import csv
 from pathlib import Path
@@ -293,7 +281,7 @@ def combine_all_metadata(extracted_folders):
                 with open(file) as f:
                     data = json.load(f)
                 combined_json[file.stem] = data
-            except:
+            except Exception as e:
                 pass
 
         # CSV merge
@@ -306,7 +294,7 @@ def combine_all_metadata(extracted_folders):
                     header = rows[0]
                     for row in rows[1:]:
                         combined_csv.append(dict(zip(header, row)))
-            except:
+            except Exception as e:
                 pass
 
     return combined_json, combined_csv
@@ -388,6 +376,51 @@ def infer_mood(bpm, brightness):
     if 80 <= bpm <= 120 and brightness > 2500:
         return "driving"
     return "neutral"
+
+
+# ---------------------------------------------------------
+#  Export Spotify-style CSV
+# ---------------------------------------------------------
+
+def export_spotify_features_csv(spotify_export, output_path="spotify_features.csv"):
+    """
+    Export audio features to CSV in Spotify-style format.
+    
+    Args:
+        spotify_export (dict): Dictionary with track names as keys and feature dicts as values.
+        output_path (str): Path to output CSV file.
+    
+    Returns:
+        str: Path to the exported CSV file.
+    """
+    try:
+        if not spotify_export:
+            return None
+        
+        # Get all unique keys from all feature dictionaries
+        fieldnames = set(["track_name"])
+        for features in spotify_export.values():
+            if isinstance(features, dict):
+                fieldnames.update(features.keys())
+        
+        fieldnames = sorted(list(fieldnames))
+        
+        # Write CSV
+        with open(output_path, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            
+            for track_name, features in spotify_export.items():
+                row = {"track_name": track_name}
+                if isinstance(features, dict):
+                    row.update(features)
+                writer.writerow(row)
+        
+        return str(Path(output_path).resolve())
+    
+    except Exception as e:
+        print(f"Error exporting Spotify features CSV: {e}")
+        return None
 
 
 # ---------------------------------------------------------
@@ -474,3 +507,24 @@ def export_ringo_metadata(track_name, metadata, audio_features=None):
         "composer": metadata.get("composer", ""),
         "publisher": metadata.get("publisher", "")
     }
+
+
+# ---------------------------------------------------------
+#  Main Execution (example usage)
+# ---------------------------------------------------------
+
+if __name__ == "__main__":
+    # Example: Extract and export Spotify features
+    # extracted = [Path("./ProjectData_1"), Path("./ProjectData_2")]  # Define extracted folders
+    # 
+    # spotify_export = {}
+    # for f in extracted:
+    #     audio_files = list(f.glob("*.wav")) + list(f.glob("*.mp3"))
+    #     for audio in audio_files:
+    #         track_name = audio.stem
+    #         audio_features = analyze_audio_features(audio)
+    #         spotify_export[track_name] = audio_features
+    # 
+    # csv_path = export_spotify_features_csv(spotify_export)
+    # print(f"📄 Exported Spotify-style CSV: {csv_path}")
+    pass
