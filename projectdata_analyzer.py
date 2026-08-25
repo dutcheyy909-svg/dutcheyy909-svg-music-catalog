@@ -21,6 +21,58 @@ def detect_file_types(folder):
 # ---------------------------------------------------------
 #  Summarise metadata from JSON + CSV files
 # ---------------------------------------------------------
+def generate_sync_tags(metadata):
+    """
+    Generate sync‑licensing tags based on JSON/CSV metadata.
+    Accepts a dict of metadata (combined_json[file] or a CSV row).
+    Returns a list of sync‑ready tags.
+    """
+
+    tags = []
+
+    # Genre-based tags
+    genre = metadata.get("genre", "").lower()
+    if "edm" in genre:
+        tags += ["energetic", "modern", "sports", "gaming", "upbeat"]
+    if "trap" in genre:
+        tags += ["dark", "urban", "gritty", "hip-hop", "intense"]
+    if "lofi" in genre:
+        tags += ["chill", "study", "relaxed", "soft beats"]
+    if "piano" in genre or "emotional" in genre:
+        tags += ["emotional", "cinematic", "heartfelt", "film", "advertising"]
+
+    # Mood-based tags
+    mood = metadata.get("mood", "").lower()
+    if "uplifting" in mood:
+        tags += ["positive", "corporate", "advertising", "feel-good"]
+    if "tension" in mood:
+        tags += ["suspense", "crime", "drama", "trailer"]
+
+    # Instrument-based tags
+    instruments = metadata.get("instruments", "").lower()
+    if "guitar" in instruments:
+        tags += ["organic", "warm", "indie"]
+    if "synth" in instruments:
+        tags += ["electronic", "futuristic", "digital"]
+
+    # BPM-based tags
+    bpm = metadata.get("bpm")
+    if bpm:
+        try:
+            bpm = int(bpm)
+            if bpm < 70:
+                tags.append("slow")
+            elif bpm < 110:
+                tags.append("mid-tempo")
+            else:
+                tags.append("fast")
+        except:
+            pass
+
+    # Remove duplicates
+    tags = list(set(tags))
+
+    return tags
 
 def summarize_metadata(folder):
     folder = Path(folder)
@@ -125,5 +177,9 @@ def generate_report(extracted_folders, output="ProjectData_Report.txt"):
 
         f.write("\nCSV Rows Combined: " + str(len(combined_csv)) + "\n")
         f.write("Duplicate Entries: " + str(len(duplicates)) + "\n")
+f.write("\nSync Licensing Tags:\n")
+for name, data in combined_json.items():
+    tags = generate_sync_tags(data)
+    f.write(f" - {name}: {', '.join(tags)}\n")
 
     return output
