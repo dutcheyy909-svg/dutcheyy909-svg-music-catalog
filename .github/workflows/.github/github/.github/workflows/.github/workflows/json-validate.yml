@@ -1,0 +1,29 @@
+
+name: Validate JSON Files
+
+on:
+  push:
+    paths:
+      - "**/*.json"
+  pull_request:
+    paths:
+      - "**/*.json"
+
+jobs:
+  validate-json:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install jq -y
+
+      - name: Validate all JSON files
+        run: |
+          echo "Validating JSON files..."
+          find . -name "*.json" | while read file; do
+            echo "Checking $file"
+            jq empty "$file" || exit 1
+          done
