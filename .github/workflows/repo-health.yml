@@ -1,12 +1,4 @@
-name: Repository He**th Check
-
-on**  push:
-    branches:
-      - mai**
-jobs**  health-check:
-    runs-on: ubun**-latest
-
-  name: Repository Health Check
+name: Repository Health Check
 
 on:
   push:
@@ -24,9 +16,6 @@ jobs:
       - name: List Files
         run: ls -R
 
-      - name: List Files
-      **run: ls -R
-
-      -**ame**Check JSON Files
+      - name: Check JSON Files
         run: |
- **       find . -name "*.json" -exe***ython -m json.tool {} \;
+          find . -name "*.json" -exec python -m json.tool {} \;
