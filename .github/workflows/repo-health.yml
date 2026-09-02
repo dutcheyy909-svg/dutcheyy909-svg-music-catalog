@@ -20,9 +20,7 @@ jobs:
         run: ls -R
 
       - name: Check Repository Structure
-  run: |
-    test -d "music-catalog/projects"
-    test -d "releases"
-    test -d "sync_cues"    echo "Catalog folder not found"
-            exit 1
-          fi
+        run: |
+          test -d "music-catalog/projects"
+          test -d "releases"
+          test -d "sync_cues"
