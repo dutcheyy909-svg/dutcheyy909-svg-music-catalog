@@ -26,6 +26,4 @@ jobs:
           test -d "sync_cues"
 
       - name: Run Catalog Generator
-        run: python scripts/catalog_generator.pyatalog/projects"
-          test -d "releases"
-          test -d "sync_cues"
+        run: python scripts/catalog_generator.py
