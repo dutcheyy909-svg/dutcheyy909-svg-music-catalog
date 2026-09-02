@@ -1,21 +1,24 @@
-import os
+import json
 from pathlib import Path
 
-print("Music Catalog Generator")
-
-for root, dirs, files in os.walk("."):
-    for file in files:
-        print(os.path.join(root, file))
-
-catalog = []
+tracks = []
 
 for file in Path(".").rglob("*.json"):
-    catalog.append(str(file))
+    try:
+        with open(file, "r") as f:
+            data = json.load(f)
+            tracks.append(data)
+    except:
+        pass
 
 with open("CATALOG.md", "w") as f:
     f.write("# DUTCHEYY Music Catalog\n\n")
 
-    for item in catalog:
-        f.write(f"- {item}\n")
+    for track in tracks:
+        f.write(f"## {track.get('title', 'Unknown')}\n")
+        f.write(f"Artist: {track.get('artist', 'Unknown')}\n")
+        f.write(f"Genre: {track.get('genre', 'Unknown')}\n")
+        f.write(f"BPM: {track.get('bpm', 'Unknown')}\n")
+        f.write(f"Mood: {track.get('mood', 'Unknown')}\n\n")
 
-print(f"Catalog generated with {len(catalog)} JSON files.")
+print(f"Processed {len(tracks)} tracks")
