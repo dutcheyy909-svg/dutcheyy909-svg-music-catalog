@@ -19,11 +19,10 @@ jobs:
       - name: List Repository Files
         run: ls -R
 
-      - name: Check Music Catalog Folder
-        run: |
-          if [ -d "catalog" ]; then
-            echo "Catalog folder found"
-          else
-            echo "Catalog folder not found"
+      - name: Check Repository Structure
+  run: |
+    test -d "music-catalog/projects"
+    test -d "releases"
+    test -d "sync_cues"    echo "Catalog folder not found"
             exit 1
           fi
