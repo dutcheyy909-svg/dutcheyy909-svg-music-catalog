@@ -6,7 +6,23 @@ on**  push:
 jobs**  health-check:
     runs-on: ubun**-latest
 
-    steps**      - name: Checkout Repository**       uses: actions/checkout@**
+  name: Repository Health Check
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: List Files
+        run: ls -R
 
       - name: List Files
       **run: ls -R
