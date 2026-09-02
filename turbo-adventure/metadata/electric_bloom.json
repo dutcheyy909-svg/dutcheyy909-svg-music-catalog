@@ -1,0 +1,48 @@
+{
+  "type": "sync_cue",
+  "title": "Electric Bloom",
+  "project": "Electric Bloom",
+  "composer": "Duncan",
+  "publisher": "",
+  "pro_affiliation": "",
+  "contact": "",
+  "bpm": 126,
+  "key": "G Major",
+  "genre": "Pop",
+  "subgenre": "Electro-Pop / Indie Pop",
+  "mood_tags": ["uplifting", "sparkly", "energetic", "youthful", "feel-good"],
+  "energy_level": 8,
+  "instrumentation": [
+    "Synth Lead",
+    "Electric Bass",
+    "Punchy Drums",
+    "Guitar Chops",
+    "Pads",
+    "FX"
+  ],
+  "edit_points": [
+    "0:00 Intro",
+    "0:12 Build",
+    "0:28 Main Groove",
+    "0:46 Chorus Lift",
+    "1:04 Final Push"
+  ],
+  "stems_available": true,
+  "versions_available": ["Instrumental", "No Lead", "60s", "30s", "Sting"],
+  "usage_rights": "100% original, no samples",
+  "recommended_scenes": [
+    "travel montage",
+    "summer energy",
+    "youth drama",
+    "sports uplift",
+    "social media edits"
+  ],
+  "similar_tracks": [
+    "LANY - Super Far",
+    "The 1975 - Happiness"
+  ],
+  "loudness_lufs": "-9.6",
+  "peak_db": "-0.3",
+  "file_path": "cues/electric_bloom/electric_bloom.wav",
+  "created_at": "2026-09-01"
+}
