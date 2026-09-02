@@ -1,0 +1,48 @@
+{
+  "type": "sync_cue",
+  "title": "Last Laugh (Upbeat Mix)",
+  "project": "Last Laugh",
+  "composer": "Duncan",
+  "publisher": "",
+  "pro_affiliation": "",
+  "contact": "",
+  "bpm": 124,
+  "key": "C minor",
+  "genre": "Pop",
+  "subgenre": "Upbeat Electro-Pop",
+  "mood_tags": ["playful", "cheeky", "energetic", "confident", "uplifting"],
+  "energy_level": 9,
+  "instrumentation": [
+    "Synth Lead",
+    "Punchy Drums",
+    "Electric Bass",
+    "Claps",
+    "Vocal Chops",
+    "Pads",
+    "FX"
+  ],
+  "edit_points": [
+    "0:00 Intro",
+    "0:10 Groove Drop",
+    "0:28 Chorus Lift",
+    "0:46 Break",
+    "1:02 Final Push"
+  ],
+  "stems_available": true,
+  "versions_available": ["Instrumental", "No Lead", "60s", "30s", "Sting"],
+  "usage_rights": "100% original, no samples",
+  "recommended_scenes": [
+    "comedy montage",
+    "youthful energy",
+    "feel-good moments",
+    "social media edits"
+  ],
+  "similar_tracks": [
+    "Dua Lipa - Levitating",
+    "Charlie Puth - Light Switch"
+  ],
+  "loudness_lufs": "-9.5",
+  "peak_db": "-0.3",
+  "file_path": "cues/last_laugh/upbeat/last_laugh_upbeat.wav",
+  "created_at": "2026-09-01"
+}
