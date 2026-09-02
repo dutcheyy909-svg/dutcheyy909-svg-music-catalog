@@ -17,8 +17,17 @@ with open("CATALOG.md", "w") as f:
     for track in tracks:
         f.write(f"## {track.get('title', 'Unknown')}\n")
         f.write(f"Artist: {track.get('artist', 'Unknown')}\n")
+        f.write(f"Album: {track.get('album', 'Unknown')}\n")
         f.write(f"Genre: {track.get('genre', 'Unknown')}\n")
+        f.write(f"Subgenre: {track.get('subgenre', 'Unknown')}\n")
         f.write(f"BPM: {track.get('bpm', 'Unknown')}\n")
-        f.write(f"Mood: {track.get('mood', 'Unknown')}\n\n")
+        f.write(f"Key: {track.get('key', 'Unknown')}\n")
+        f.write(f"Mood: {track.get('mood', 'Unknown')}\n")
+        f.write(f"Duration: {track.get('duration', 'Unknown')}\n")
+        f.write(f"Vocals: {track.get('vocals', 'Unknown')}\n")
+        f.write(f"Release Date: {track.get('release_date', 'Unknown')}\n")
+
+        keywords = ", ".join(track.get("keywords", []))
+        f.write(f"Keywords: {keywords}\n\n")
 
 print(f"Processed {len(tracks)} tracks")
