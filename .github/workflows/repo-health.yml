@@ -13,9 +13,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: List Files
+      - name: Check README Exists
+        run: test -f README.md
+
+      - name: List Repository Files
         run: ls -R
 
-      - name: Check JSON Files
+      - name: Check Music Catalog Folder
         run: |
-          find . -name "*.json" -exec python -m json.tool {} \;
+          if [ -d "catalog" ]; then
+            echo "Catalog folder found"
+          else
+            echo "Catalog folder not found"
+            exit 1
+          fi
