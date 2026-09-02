@@ -8,7 +8,7 @@ for file in Path(".").rglob("*.json"):
         with open(file, "r") as f:
             data = json.load(f)
             tracks.append(data)
-    except:
+    except Exception:
         pass
 
 with open("CATALOG.md", "w") as f:
@@ -31,3 +31,4 @@ with open("CATALOG.md", "w") as f:
         f.write(f"Keywords: {keywords}\n\n")
 
 print(f"Processed {len(tracks)} tracks")
+`
