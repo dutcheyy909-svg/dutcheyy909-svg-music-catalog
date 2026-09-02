@@ -1,0 +1,21 @@
+{
+  "title": "Redline City",
+  "composer": "Duncan",
+  "bpm": 134,
+  "key": "D# Major",
+  "genre": "Electronic",
+  "mood": ["neon", "driving", "urban", "energetic", "high-speed"],
+  "rights": {
+    "status": "100% original",
+    "samples_used": false,
+    "notes": "High-energy electronic cue created for sync licensing."
+  },
+  "files": {
+    "wav": "projects/redline_city.wav",
+    "mp3": "projects/redline_city.mp3",
+    "stems_folder": "projects/redline_city_stems"
+  },
+  "description": "A fast, neon-charged electronic track built around a 134 BPM D# major progression, inspired by high-speed city motion and late-night energy.",
+  "created": "2026-01-01",
+  "updated": "2026-08-31"
+}
