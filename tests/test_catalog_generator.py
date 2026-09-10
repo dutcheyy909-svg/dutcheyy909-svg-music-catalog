@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 
-REPO_ROOT = Path("/home/runner/work/dutcheyy909-svg-music-catalog/dutcheyy909-svg-music-catalog")
+REPO_ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = REPO_ROOT / "scripts" / "catalog_generator.py"
 
 
