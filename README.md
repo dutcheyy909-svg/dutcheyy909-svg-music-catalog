@@ -1,10 +1,10 @@
-# Turbo Adventure
+# dutcheyy909-svg-music-catalog
 
 ## Overview
-Automation + profile metadata + scripts.
+A structured music catalog repository for managing Dutcheyy Studio music assets and metadata.
 
 ## Latest Updates
-- Added README auto-update workflow
+- Added automated README generation from template
 
 ## Skills
 - Python
@@ -12,5 +12,5 @@ Automation + profile metadata + scripts.
 - Metadata processing
 
 ## Projects
-- ProjectData extractor
-- Profile metadata builder
+- Music catalog metadata management
+- Release and sync cue documentation
