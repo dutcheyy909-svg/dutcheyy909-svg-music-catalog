@@ -48,7 +48,9 @@ def build_catalog(
 
 
 def write_catalog(catalog: List[Dict[str, str]], output_path: Path) -> None:
-    output_path.write_text(json.dumps(catalog, indent=2) + "\n", encoding="utf-8")
+    output_path.write_text(
+        json.dumps(catalog, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def main() -> None:
