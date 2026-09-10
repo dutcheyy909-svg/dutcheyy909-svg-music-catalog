@@ -18,6 +18,8 @@ class CatalogGeneratorTests(unittest.TestCase):
             (repository_root / ".git").mkdir()
             (repository_root / "node_modules" / "demo").mkdir(parents=True)
 
+            (repository_root / "music" / "album" / "anthem.MP3").write_bytes(b"upper-mp3")
+            (repository_root / "music" / "album" / "beat.WAV").write_bytes(b"upper-wav")
             (repository_root / "music" / "album" / "track.wav").write_bytes(b"wav")
             (repository_root / "music" / "album" / "track.mp3").write_bytes(b"mp3")
             (repository_root / "music" / "album" / "notes.txt").write_text("ignore", encoding="utf-8")
@@ -29,6 +31,8 @@ class CatalogGeneratorTests(unittest.TestCase):
         self.assertEqual(
             catalog,
             [
+                {"filename": "anthem.MP3", "path": "music/album/anthem.MP3"},
+                {"filename": "beat.WAV", "path": "music/album/beat.WAV"},
                 {"filename": "track.mp3", "path": "music/album/track.mp3"},
                 {"filename": "track.wav", "path": "music/album/track.wav"},
             ],
