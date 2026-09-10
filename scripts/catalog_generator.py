@@ -144,7 +144,7 @@ def build_catalog(root):
 def write_catalog(root):
     catalog = build_catalog(root)
     output_path = root / CATALOG_FILENAME
-    output_path.write_text(json.dumps(catalog, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    output_path.write_text(json.dumps(catalog, indent=2) + "\n", encoding="utf-8")
     return catalog
 
 
