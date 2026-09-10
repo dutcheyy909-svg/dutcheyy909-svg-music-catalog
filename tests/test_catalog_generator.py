@@ -16,6 +16,7 @@ class CatalogGeneratorTests(unittest.TestCase):
             repository_root = Path(temp_directory)
             (repository_root / "music" / "album").mkdir(parents=True)
             (repository_root / ".git").mkdir()
+            (repository_root / ".github" / "workflows").mkdir(parents=True)
             (repository_root / "node_modules" / "demo").mkdir(parents=True)
 
             (repository_root / "music" / "album" / "anthem.MP3").write_bytes(b"upper-mp3")
@@ -24,6 +25,7 @@ class CatalogGeneratorTests(unittest.TestCase):
             (repository_root / "music" / "album" / "track.mp3").write_bytes(b"mp3")
             (repository_root / "music" / "album" / "notes.txt").write_text("ignore", encoding="utf-8")
             (repository_root / ".git" / "ignored.wav").write_bytes(b"git")
+            (repository_root / ".github" / "workflows" / "ignored.mp3").write_bytes(b"github")
             (repository_root / "node_modules" / "demo" / "ignored.mp3").write_bytes(b"node")
 
             catalog = catalog_generator.build_catalog(repository_root)
