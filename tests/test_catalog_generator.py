@@ -110,6 +110,41 @@ class CatalogGeneratorTests(unittest.TestCase):
                 },
             )
 
+    def test_catalog_keeps_case_sensitive_files_and_ignores_text_mentions(self):
+        module = load_catalog_generator()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "audio").mkdir()
+            (root / "metadata").mkdir()
+            (root / "audio" / "Song.mp3").write_bytes(b"upper")
+            (root / "audio" / "song.mp3").write_bytes(b"lower")
+            (root / "metadata" / "song.json").write_text(
+                json.dumps(
+                    {
+                        "title": "Real Song",
+                        "file_path": "audio/song.mp3",
+                        "description": "Mentioning audio/Song.mp3 here should not create a second match.",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            catalog = module.build_catalog(root)
+
+            self.assertEqual(
+                [track["relative_path"] for track in catalog["tracks"]],
+                ["audio/Song.mp3", "audio/song.mp3"],
+            )
+            self.assertNotIn("metadata", catalog["tracks"][0])
+            self.assertEqual(
+                catalog["tracks"][1]["metadata"],
+                {
+                    "title": "Real Song",
+                    "description": "Mentioning audio/Song.mp3 here should not create a second match.",
+                },
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
