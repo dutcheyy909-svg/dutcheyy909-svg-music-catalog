@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -42,6 +43,22 @@ class CatalogGeneratorTests(unittest.TestCase):
                 {"filename": "track.mp3", "path": "music/album/track.mp3"},
                 {"filename": "track.wav", "path": "music/album/track.wav"},
             ],
+        )
+
+    def test_write_catalog_outputs_json_with_trailing_newline(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_directory:
+            output_path = Path(temp_directory) / "catalog.json"
+            catalog = [{"filename": "track.wav", "path": "music/track.wav"}]
+
+            catalog_generator.write_catalog(catalog, output_path)
+
+            written_text = output_path.read_text(encoding="utf-8")
+
+        self.assertTrue(written_text.endswith("\n"))
+        self.assertEqual(json.loads(written_text), catalog)
+        self.assertEqual(
+            written_text,
+            '[\n  {\n    "filename": "track.wav",\n    "path": "music/track.wav"\n  }\n]\n',
         )
 
 
