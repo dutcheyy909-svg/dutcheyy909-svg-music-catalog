@@ -19,6 +19,13 @@ def load_catalog_generator():
 
 
 class CatalogGeneratorTests(unittest.TestCase):
+    def test_normalize_reference_path_only_strips_single_dot_prefix(self):
+        module = load_catalog_generator()
+
+        self.assertEqual(module._normalize_reference_path("./audio/track.wav"), "audio/track.wav")
+        self.assertEqual(module._normalize_reference_path(".hidden/track.wav"), ".hidden/track.wav")
+        self.assertIsNone(module._normalize_reference_path("/audio/track.wav"))
+
     def test_build_catalog_finds_audio_and_enriches_metadata(self):
         module = load_catalog_generator()
 

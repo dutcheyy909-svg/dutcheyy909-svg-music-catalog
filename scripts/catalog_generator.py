@@ -27,10 +27,13 @@ def _normalize_reference_path(value):
         return None
 
     normalized = posixpath.normpath(value.replace("\\", "/").strip())
-    if normalized in {"", "."} or normalized.startswith("../"):
+    if normalized in {"", "."} or normalized.startswith("../") or normalized.startswith("/"):
         return None
 
-    return normalized.lstrip("./")
+    if normalized.startswith("./"):
+        return normalized[2:]
+
+    return normalized
 
 
 def _extract_audio_references(data):
