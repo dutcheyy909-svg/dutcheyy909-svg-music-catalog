@@ -29,6 +29,13 @@ class GenerateReadmeTests(unittest.TestCase):
         rendered = module.render("# {{project_name}}", {"project_name": "Guide for {{name}} placeholders"})
         self.assertEqual(rendered, "# Guide for {{name}} placeholders")
 
+    def test_render_does_not_reprocess_placeholder_like_value_text(self):
+        rendered = module.render(
+            "# {{project_name}}\n{{overview}}",
+            {"project_name": "Literal {{overview}} text", "overview": "must not be injected"},
+        )
+        self.assertEqual(rendered, "# Literal {{overview}} text\nmust not be injected")
+
     def test_main_writes_readme_from_non_repo_cwd(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)

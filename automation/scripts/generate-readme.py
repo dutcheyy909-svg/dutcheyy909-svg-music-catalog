@@ -44,7 +44,14 @@ def render(template: str, data: dict[str, str]) -> str:
             problems.append(f"unused keys: {sorted(extra)}")
         raise ValueError("Template/data mismatch: " + "; ".join(problems))
 
-    return PLACEHOLDER_PATTERN.sub(lambda match: data[match.group(1)], template)
+    output = []
+    cursor = 0
+    for match in PLACEHOLDER_PATTERN.finditer(template):
+        output.append(template[cursor:match.start()])
+        output.append(data[match.group(1)])
+        cursor = match.end()
+    output.append(template[cursor:])
+    return "".join(output)
 
 
 def main() -> None:
