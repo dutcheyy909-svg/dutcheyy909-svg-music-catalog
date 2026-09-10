@@ -17,7 +17,17 @@ def load_template() -> str:
 
 
 def load_sections() -> dict[str, str]:
-    return json.loads(DATA_PATH.read_text(encoding="utf-8"))
+    data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("README data must be a JSON object")
+
+    non_string_entries = [
+        key for key, value in data.items() if not isinstance(key, str) or not isinstance(value, str)
+    ]
+    if non_string_entries:
+        raise ValueError("README data must be a flat object with string keys and values")
+
+    return data
 
 
 def render(template: str, data: dict[str, str]) -> str:

@@ -19,6 +19,10 @@ class GenerateReadmeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             module.render("# {{project_name}}\n{{overview}}", {"project_name": "x"})
 
+    def test_render_raises_on_unused_data_key(self):
+        with self.assertRaises(ValueError):
+            module.render("# {{project_name}}", {"project_name": "x", "overview": "y"})
+
     def test_main_writes_readme_from_non_repo_cwd(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
