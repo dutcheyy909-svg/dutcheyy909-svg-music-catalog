@@ -37,7 +37,7 @@ def build_catalog(repository_root: Path) -> list[dict[str, str]]:
                     }
                 )
 
-    return catalog
+    return sorted(catalog, key=lambda item: item["path"])
 
 
 def write_catalog(catalog: list[dict[str, str]], output_path: Path) -> None:
