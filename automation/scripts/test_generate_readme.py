@@ -10,6 +10,8 @@ SCRIPT_PATH = REPO_ROOT / "automation" / "scripts" / "generate-readme.py"
 
 
 spec = importlib.util.spec_from_file_location("generate_readme", SCRIPT_PATH)
+if spec is None or spec.loader is None:
+    raise RuntimeError(f"Unable to load README generator script from {SCRIPT_PATH}")
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
