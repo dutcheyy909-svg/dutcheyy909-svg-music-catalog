@@ -19,16 +19,20 @@ class CatalogGeneratorTests(unittest.TestCase):
             (repository_root / ".github" / "workflows").mkdir(parents=True)
             (repository_root / "node_modules" / "demo").mkdir(parents=True)
 
+            ignored_output = repository_root / "catalog.mp3"
             (repository_root / "music" / "album" / "anthem.MP3").write_bytes(b"upper-mp3")
             (repository_root / "music" / "album" / "beat.WAV").write_bytes(b"upper-wav")
             (repository_root / "music" / "album" / "track.wav").write_bytes(b"wav")
             (repository_root / "music" / "album" / "track.mp3").write_bytes(b"mp3")
+            ignored_output.write_bytes(b"generated-audio")
             (repository_root / "music" / "album" / "notes.txt").write_text("ignore", encoding="utf-8")
             (repository_root / ".git" / "ignored.wav").write_bytes(b"git")
             (repository_root / ".github" / "workflows" / "ignored.mp3").write_bytes(b"github")
             (repository_root / "node_modules" / "demo" / "ignored.mp3").write_bytes(b"node")
 
-            catalog = catalog_generator.build_catalog(repository_root)
+            catalog = catalog_generator.build_catalog(
+                repository_root, ignored_paths={ignored_output}
+            )
 
         self.assertEqual(
             catalog,

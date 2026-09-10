@@ -18,8 +18,11 @@ def get_repository_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
-def build_catalog(repository_root: Path) -> list[dict[str, str]]:
+def build_catalog(
+    repository_root: Path, ignored_paths: set[Path] | None = None
+) -> list[dict[str, str]]:
     catalog = []
+    ignored_paths = {path.resolve() for path in ignored_paths or set()}
 
     for root, directories, files in os.walk(repository_root):
         directories[:] = sorted(
@@ -28,6 +31,9 @@ def build_catalog(repository_root: Path) -> list[dict[str, str]]:
 
         for file_name in sorted(files):
             path = Path(root, file_name)
+
+            if path.resolve() in ignored_paths:
+                continue
 
             if path.suffix.lower() in AUDIO_EXTENSIONS:
                 catalog.append(
@@ -47,7 +53,7 @@ def write_catalog(catalog: list[dict[str, str]], output_path: Path) -> None:
 def main() -> None:
     repository_root = get_repository_root()
     output_path = repository_root / "catalog.json"
-    catalog = build_catalog(repository_root)
+    catalog = build_catalog(repository_root, ignored_paths={output_path})
     write_catalog(catalog, output_path)
     print(f"Wrote {len(catalog)} audio files to {output_path.relative_to(repository_root)}")
 
