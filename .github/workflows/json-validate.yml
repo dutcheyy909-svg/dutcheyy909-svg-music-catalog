@@ -19,13 +19,61 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Install jq
-        run: sudo apt-get install jq -y
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-      - name: Validate all JSON files
+      - name: Install dependencies
+        run: pip install jsonschema
+
+      - name: Validate JSON files
         run: |
-          echo "Validating JSON files..."
-          find . -name "*.json" | while read file; do
-            echo "Checking $file"
-            jq empty "$file" || exit 1
-          done
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from jsonschema import Draft7Validator, Draft202012Validator
+
+          validators = {
+              Path("releases/release.schema.json"): Draft7Validator,
+              Path("sync_cues/sync_cue.schema.json"): Draft7Validator,
+              Path("music-catalog/projects/project.schema.json"): Draft202012Validator,
+          }
+
+          schema_cache = {}
+          all_json_files = sorted(Path(".").rglob("*.json"))
+
+          for json_file in all_json_files:
+              if json_file.name.endswith(".schema.json"):
+                  continue
+
+              content = json_file.read_text(encoding="utf-8")
+              instance = json.loads(content)
+              print(f"Syntax OK: {json_file}")
+
+              schema_path = None
+              if json_file.parent == Path("releases"):
+                  schema_path = Path("releases/release.schema.json")
+              elif json_file.parent == Path("sync_cues"):
+                  schema_path = Path("sync_cues/sync_cue.schema.json")
+              elif json_file.parent == Path("music-catalog/projects"):
+                  schema_path = Path("music-catalog/projects/project.schema.json")
+
+              if schema_path is None:
+                  continue
+
+              if schema_path not in schema_cache:
+                  schema_cache[schema_path] = json.loads(schema_path.read_text(encoding="utf-8"))
+
+              validator_cls = validators[schema_path]
+              validator = validator_cls(schema_cache[schema_path])
+              errors = sorted(validator.iter_errors(instance), key=lambda e: list(e.path))
+              if errors:
+                  details = "; ".join(
+                      f"path={list(error.path)} message={error.message}" for error in errors
+                  )
+                  raise ValueError(f"Schema validation failed for {json_file}: {details}")
+
+              print(f"Schema OK: {json_file} (schema: {schema_path})")
+          PY
