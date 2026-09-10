@@ -63,7 +63,7 @@ def _build_metadata_index(root, output_path):
     exact_index = {}
 
     for json_path in sorted(root.rglob("*.json"), key=lambda path: path.relative_to(root).as_posix()):
-        if json_path.resolve() == output_path.resolve():
+        if json_path == output_path:
             continue
 
         data = _load_json_file(json_path)
