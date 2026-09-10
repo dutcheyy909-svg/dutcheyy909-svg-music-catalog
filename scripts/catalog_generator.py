@@ -61,7 +61,6 @@ def _load_json_file(path):
 
 def _build_metadata_index(root, output_path):
     exact_index = {}
-    folded_index = {}
 
     for json_path in sorted(root.rglob("*.json"), key=lambda path: path.relative_to(root).as_posix()):
         if json_path.resolve() == output_path.resolve():
@@ -78,9 +77,8 @@ def _build_metadata_index(root, output_path):
         source = json_path.relative_to(root).as_posix()
         for reference in sorted(references):
             exact_index.setdefault(reference, []).append((source, data))
-            folded_index.setdefault(reference.casefold(), []).append((reference, source, data))
 
-    return exact_index, folded_index
+    return exact_index
 
 
 def _merge_metadata(matches):
@@ -98,7 +96,7 @@ def _merge_metadata(matches):
 
 def build_catalog(root):
     output_path = root / CATALOG_FILENAME
-    exact_metadata_index, folded_metadata_index = _build_metadata_index(root, output_path)
+    exact_metadata_index = _build_metadata_index(root, output_path)
     tracks = []
     seen_paths = set()
     audio_paths = sorted(
@@ -108,16 +106,6 @@ def build_catalog(root):
             item.relative_to(root).as_posix(),
         ),
     )
-    folded_audio_path_counts = {}
-
-    for path in audio_paths:
-        if not path.is_file() or path.suffix.lower() not in AUDIO_EXTENSIONS:
-            continue
-
-        relative_path = path.relative_to(root).as_posix()
-        folded_audio_path_counts[relative_path.casefold()] = (
-            folded_audio_path_counts.get(relative_path.casefold(), 0) + 1
-        )
 
     for path in audio_paths:
         if not path.is_file() or path.suffix.lower() not in AUDIO_EXTENSIONS:
@@ -129,11 +117,6 @@ def build_catalog(root):
 
         seen_paths.add(relative_path)
         metadata_matches = exact_metadata_index.get(relative_path, [])
-        if not metadata_matches:
-            folded_matches = folded_metadata_index.get(relative_path.casefold(), [])
-            referenced_paths = {reference for reference, _, _ in folded_matches}
-            if len(referenced_paths) == 1 and folded_audio_path_counts.get(relative_path.casefold()) == 1:
-                metadata_matches = [(source, data) for _, source, data in folded_matches]
 
         track = {
             "filename": path.name,
