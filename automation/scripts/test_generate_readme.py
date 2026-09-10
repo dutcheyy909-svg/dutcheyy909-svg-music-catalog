@@ -40,7 +40,7 @@ class GenerateReadmeTests(unittest.TestCase):
                 module.TEMPLATE_PATH = template_path
                 module.DATA_PATH = data_path
                 module.README_PATH = output_path
-                os.chdir("/tmp")
+                os.chdir(temp_path)
                 module.main()
             finally:
                 os.chdir(original_cwd)
