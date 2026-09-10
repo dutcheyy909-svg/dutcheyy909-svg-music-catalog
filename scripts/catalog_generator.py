@@ -26,12 +26,13 @@ def _normalize_reference_path(value):
     if not isinstance(value, str):
         return None
 
-    normalized = posixpath.normpath(value.replace("\\", "/").strip())
+    raw_value = value.replace("\\", "/").strip()
+    if raw_value.startswith("./"):
+        raw_value = raw_value[2:]
+
+    normalized = posixpath.normpath(raw_value)
     if normalized in {"", "."} or normalized.startswith("../") or normalized.startswith("/"):
         return None
-
-    if normalized.startswith("./"):
-        return normalized[2:]
 
     return normalized
 

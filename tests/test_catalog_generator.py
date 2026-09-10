@@ -13,6 +13,8 @@ MODULE_PATH = REPO_ROOT / "scripts" / "catalog_generator.py"
 
 def load_catalog_generator():
     spec = importlib.util.spec_from_file_location("catalog_generator", MODULE_PATH)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to load catalog generator module from {MODULE_PATH}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
