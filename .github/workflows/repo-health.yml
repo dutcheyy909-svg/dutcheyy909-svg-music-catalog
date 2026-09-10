@@ -27,6 +27,8 @@ jobs:
 
       - name: Run Catalog Generator
         run: python scripts/catalog_generator.py
+      - name: Check Catalog Output
+        run: test -f catalog.json
       - name: Check Scripts Folder
         run: |
           ls -R

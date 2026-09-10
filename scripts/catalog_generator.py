@@ -1,34 +1,56 @@
 import json
+import os
 from pathlib import Path
 
-tracks = []
 
-for file in Path(".").rglob("*.json"):
-    try:
-        with open(file, "r") as f:
-            data = json.load(f)
-            tracks.append(data)
-    except Exception:
-        pass
+AUDIO_EXTENSIONS = {".mp3", ".wav"}
+SKIP_DIRECTORIES = {
+    ".git",
+    ".github",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "node_modules",
+}
 
-with open("CATALOG.md", "w") as f:
-    f.write("# DUTCHEYY Music Catalog\n\n")
 
-    for track in tracks:
-        f.write(f"## {track.get('title', 'Unknown')}\n")
-        f.write(f"Artist: {track.get('artist', 'Unknown')}\n")
-        f.write(f"Album: {track.get('album', 'Unknown')}\n")
-        f.write(f"Genre: {track.get('genre', 'Unknown')}\n")
-        f.write(f"Subgenre: {track.get('subgenre', 'Unknown')}\n")
-        f.write(f"BPM: {track.get('bpm', 'Unknown')}\n")
-        f.write(f"Key: {track.get('key', 'Unknown')}\n")
-        f.write(f"Mood: {track.get('mood', 'Unknown')}\n")
-        f.write(f"Duration: {track.get('duration', 'Unknown')}\n")
-        f.write(f"Vocals: {track.get('vocals', 'Unknown')}\n")
-        f.write(f"Release Date: {track.get('release_date', 'Unknown')}\n")
+def get_repository_root() -> Path:
+    return Path(__file__).resolve().parent.parent
 
-        keywords = ", ".join(track.get("keywords", []))
-        f.write(f"Keywords: {keywords}\n\n")
 
-print(f"Processed {len(tracks)} tracks")
-`
+def build_catalog(repository_root: Path) -> list[dict[str, str]]:
+    catalog = []
+
+    for root, directories, files in os.walk(repository_root):
+        directories[:] = sorted(
+            directory for directory in directories if directory not in SKIP_DIRECTORIES
+        )
+
+        for file_name in sorted(files):
+            path = Path(root, file_name)
+
+            if path.suffix.lower() in AUDIO_EXTENSIONS:
+                catalog.append(
+                    {
+                        "filename": path.name,
+                        "path": path.relative_to(repository_root).as_posix(),
+                    }
+                )
+
+    return catalog
+
+
+def write_catalog(catalog: list[dict[str, str]], output_path: Path) -> None:
+    output_path.write_text(json.dumps(catalog, indent=2) + "\n", encoding="utf-8")
+
+
+def main() -> None:
+    repository_root = get_repository_root()
+    output_path = repository_root / "catalog.json"
+    catalog = build_catalog(repository_root)
+    write_catalog(catalog, output_path)
+    print(f"Wrote {len(catalog)} audio files to {output_path.relative_to(repository_root)}")
+
+
+if __name__ == "__main__":
+    main()
