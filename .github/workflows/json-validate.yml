@@ -39,6 +39,7 @@ jobs:
               Path("releases/release.schema.json"): Draft7Validator,
               Path("sync_cues/sync_cue.schema.json"): Draft7Validator,
               Path("music-catalog/projects/project.schema.json"): Draft202012Validator,
+              Path("turbo-adventure/metadata/track.schema.json"): Draft7Validator,
           }
 
           schema_cache = {}
@@ -59,6 +60,8 @@ jobs:
                   schema_path = Path("sync_cues/sync_cue.schema.json")
               elif json_file.parent == Path("music-catalog/projects"):
                   schema_path = Path("music-catalog/projects/project.schema.json")
+              elif json_file.parent == Path("turbo-adventure/metadata") and json_file.name != "sync_metadata.json":
+                  schema_path = Path("turbo-adventure/metadata/track.schema.json")
 
               if schema_path is None:
                   continue

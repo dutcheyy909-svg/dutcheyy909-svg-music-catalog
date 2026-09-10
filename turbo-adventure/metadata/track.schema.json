@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Turbo Adventure Track Metadata",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "title",
+    "composer",
+    "bpm",
+    "key",
+    "genre"
+  ],
+  "properties": {
+    "type": { "type": "string" },
+    "title": { "type": "string", "minLength": 1 },
+    "project": { "type": "string" },
+    "composer": { "type": "string", "minLength": 1 },
+    "bpm": { "type": "number", "exclusiveMinimum": 0 },
+    "key": { "type": "string", "minLength": 1 },
+    "genre": { "type": "string", "minLength": 1 },
+    "subgenre": { "type": "string" },
+    "mood_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "mood": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "file_path": { "type": "string", "minLength": 1 },
+    "files": {
+      "type": "object",
+      "required": ["wav", "mp3"],
+      "properties": {
+        "wav": { "type": "string", "minLength": 1 },
+        "mp3": { "type": "string", "minLength": 1 },
+        "stems_folder": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "rights": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" },
+        "samples_used": { "type": "boolean" },
+        "notes": { "type": "string" }
+      },
+      "required": ["status", "samples_used"],
+      "additionalProperties": true
+    }
+  },
+  "anyOf": [
+    { "required": ["file_path"] },
+    { "required": ["files"] }
+  ]
+}
