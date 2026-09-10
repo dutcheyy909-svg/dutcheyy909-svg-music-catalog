@@ -8,6 +8,9 @@ on:
     paths:
       - "**/*.json"
 
+permissions:
+  contents: read
+
 jobs:
   validate-json:
     runs-on: ubuntu-latest
