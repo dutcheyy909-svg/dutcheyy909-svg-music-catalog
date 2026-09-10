@@ -44,14 +44,7 @@ def render(template: str, data: dict[str, str]) -> str:
             problems.append(f"unused keys: {sorted(extra)}")
         raise ValueError("Template/data mismatch: " + "; ".join(problems))
 
-    rendered = template
-    for key in placeholders:
-        rendered = rendered.replace(f"{{{{{key}}}}}", str(data[key]))
-
-    if PLACEHOLDER_PATTERN.search(rendered):
-        raise ValueError("Template contains unresolved placeholders after rendering")
-
-    return rendered
+    return PLACEHOLDER_PATTERN.sub(lambda match: data[match.group(1)], template)
 
 
 def main() -> None:
