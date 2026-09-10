@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+from typing import Dict, List, Optional, Set
 
 
 AUDIO_EXTENSIONS = {".mp3", ".wav"}
@@ -19,8 +20,8 @@ def get_repository_root() -> Path:
 
 
 def build_catalog(
-    repository_root: Path, ignored_paths: set[Path] | None = None
-) -> list[dict[str, str]]:
+    repository_root: Path, ignored_paths: Optional[Set[Path]] = None
+) -> List[Dict[str, str]]:
     catalog = []
     ignored_paths = {path.resolve() for path in ignored_paths or set()}
 
@@ -46,7 +47,7 @@ def build_catalog(
     return sorted(catalog, key=lambda item: item["path"])
 
 
-def write_catalog(catalog: list[dict[str, str]], output_path: Path) -> None:
+def write_catalog(catalog: List[Dict[str, str]], output_path: Path) -> None:
     output_path.write_text(json.dumps(catalog, indent=2) + "\n", encoding="utf-8")
 
 
