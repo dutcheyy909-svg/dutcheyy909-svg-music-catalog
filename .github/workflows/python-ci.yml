@@ -1,0 +1,49 @@
+# 1. Clone your repo (if you don't have it locally)
+git clone https://github.com/dutcheyy909-svg/dutcheyy909-svg-music-catalog.git
+cd dutcheyy909-svg-music-catalog
+
+# 2. Create the directories
+mkdir -p .github/workflows
+
+# 3. Create the file with the YAML content
+cat > .github/workflows/python-ci.yml << 'EOF'
+name: Python CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run tests
+        run: |
+          if [ -d tests ]; then pytest -q; else echo "No tests folder found"; fi
+
+      - name: Lint (flake8)
+        run: |
+          pip install flake8
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+EOF
+
+# 4. Push to GitHub
+git add .github/workflows/python-ci.yml
+git commit -m "Create Python CI workflow"
+git push origin main
