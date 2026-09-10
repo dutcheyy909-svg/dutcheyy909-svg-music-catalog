@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""A small, dependency-free command-line to-do list."""
+import argparse
+import json
+import os
+import tempfile
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+class TodoStore:
+    """Persist tasks in a local JSON file."""
+    def **init**(self, path: Path) -> None:
+        self.path = path
+    def load(self) -> list[dict[str, Any]]:
+        if not self.path.exists():
+            return []
+        try:
+            with self.path.open(encoding="utf-8") as file:
+                tasks = json.load(file)
+        except json.JSONDecodeError as error:
+            raise ValueError(f"Cannot read '{self.path}': invalid JSON.") from error
+        except OSError as error:
+            raise ValueError(f"Cannot read '{self.path}': {error.strerror}.") from error
+        if not isinstance(tasks, list) or any(not isinstance(task, dict) for task in tasks):
+            raise ValueError(f"Cannot read '{self.path}': expected a list of tasks.")
+        return tasks
+    def save(self, tasks: list[dict[str, Any]]) -> None:
+        self.path.parent.mkdir(parents=True, exist\_ok=True)
+        descriptor, temporary\_path = tempfile.mkstemp(
+            dir=self.path.parent, prefix=f".{self.path.name}.", suffix=".tmp"
+        )
+        try:
+            with os.fdopen(descriptor, "w", encoding="utf-8") as file:
+                json.dump(tasks, file, indent=2)
+                file.write("\n")
+            os.replace(temporary\_path, self.path)
+        except OSError as error:
+            try:
+                os.unlink(temporary\_path)
+            except FileNotFoundError:
+                pass
+            raise ValueError(f"Cannot save '{self.path}': {error.strerror}.") from error
+    def add(self, title: str) -> dict[str, Any]:
+        tasks = self.load()
+        task = {
+            "id": max((task.get("id", 0) for task in tasks), default=0) + 1,
+            "title": title,
+            "completed": False,
+            "created\_at": datetime.now(timezone.utc).isoformat(),
+        }
+        tasks.append(task)
+        self.save(tasks)
+        return task
+    def find(self, task\_id: int) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        tasks = self.load()
+        for task in tasks:
+            if task.get("id") == task\_id:
+                return tasks, task
+        raise ValueError(f"Task {task\_id} does not exist.")
+    def complete(self, task\_id: int) -> dict[str, Any]:
+        tasks, task = self.find(task\_id)
+        task["completed"] = True
+        self.save(tasks)
+        return task
+    def delete(self, task\_id: int) -> dict[str, Any]:
+        tasks, task = self.find(task\_id)
+        tasks.remove(task)
+        self.save(tasks)
+        return task
+def build\_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Manage a local JSON to-do list.")
+    parser.add\_argument(
+        "--storage",
+        type=Path,
+        default=Path("todo\_data.json"),
+        help="JSON file used to store tasks (default: todo\_data.json).",
+    )
+    commands = parser.add\_subparsers(dest="command", required=True)
+    add\_parser = commands.add\_parser("add", help="Add a task.")
+    add\_parser.add\_argument("title", help="Task description.")
+    list\_parser = commands.add\_parser("list", help="List tasks.")
+    list\_parser.add\_argument(
+        "--completed", action="store\_true", help="Show completed tasks only."
+    )
+    list\_parser.add\_argument(
+        "--all", action="store\_true", help="Show both pending and completed tasks."
+    )
+    complete\_parser = commands.add\_parser("complete", help="Mark a task complete.")
+    complete\_parser.add\_argument("id", type=int, help="Task ID.")
+    delete\_parser = commands.add\_parser("delete", help="Delete a task.")
+    delete\_parser.add\_argument("id", type=int, help="Task ID.")
+    return parser
+def print\_tasks(tasks: list[dict[str, Any]]) -> None:
+    if not tasks:
+        print("No tasks found.")
+        return
+    for task in tasks:
+        status = "x" if task.get("completed") else " "
+        print(f"[{status}] {task['id']}: {task['title']}")
+def main() -> int:
+    args = build\_parser().parse\_args()
+    store = TodoStore(args.storage)
+    try:
+        if args.command == "add":
+            title = args.title.strip()
+            if not title:
+                raise ValueError("Task title cannot be empty.")
+            task = store.add(title)
+            print(f"Added task {task['id']}: {task['title']}")
+        elif args.command == "list":
+            tasks = store.load()
+            if not args.all:
+                tasks = [
+                    task
+                    for task in tasks
+                    if task.get("completed", False) == args.completed
+                ]
+            print\_tasks(tasks)
+        elif args.command == "complete":
+            task = store.complete(args.id)
+            print(f"Completed task {task['id']}: {task['title']}")
+        elif args.command == "delete":
+            task = store.delete(args.id)
+            print(f"Deleted task {task['id']}: {task['title']}")
+    except ValueError as error:
+        print(f"Error: {error}")
+        return 1
+    return 0
+if **name** == "**main**":
+    raise SystemExit(main())
