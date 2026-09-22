@@ -23,11 +23,7 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         }
 
         workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
-        loader = WorkflowLoader(workflow_text)
-        try:
-            return loader.get_single_data()
-        finally:
-            loader.dispose()
+        return yaml.load(workflow_text, Loader=WorkflowLoader)
 
     def _get_push_config(self):
         workflow_on = self._get_workflow().get("on")
