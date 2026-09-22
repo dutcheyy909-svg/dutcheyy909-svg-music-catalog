@@ -8,11 +8,21 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "auto-update-readme.yml"
 
 
+class WorkflowLoader(yaml.SafeLoader):
+    pass
+
+
+WorkflowLoader.yaml_implicit_resolvers = {
+    key: [resolver for resolver in value if resolver[0] != "tag:yaml.org,2002:bool"]
+    for key, value in yaml.SafeLoader.yaml_implicit_resolvers.items()
+}
+
+
 class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
-        cls.workflow = yaml.load(workflow_text, Loader=yaml.BaseLoader)
+        cls.workflow = yaml.load(workflow_text, Loader=WorkflowLoader)
 
     def _get_push_config(self):
         return self.workflow["on"]["push"]
