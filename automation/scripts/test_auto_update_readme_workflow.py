@@ -23,7 +23,11 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         }
 
         workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
-        return yaml.load(workflow_text, Loader=WorkflowLoader)
+        workflow = yaml.load(workflow_text, Loader=WorkflowLoader)
+        if isinstance(workflow, dict) and "on" not in workflow and True in workflow:
+            workflow = dict(workflow)
+            workflow["on"] = workflow[True]
+        return workflow
 
     def _get_push_config(self):
         workflow_on = self._get_workflow().get("on")
