@@ -45,7 +45,9 @@ class CatalogGeneratorTests(unittest.TestCase):
             repo_root = Path(repo_dir)
             output_path = repo_root / "catalog.json"
             (repo_root / "nested").mkdir()
+            (repo_root / "output").mkdir()
             (repo_root / "nested" / "song.wav").write_bytes(b"")
+            (repo_root / "output" / "skip.wav").write_bytes(b"")
 
             original_repo_root = module.REPO_ROOT
             original_output_path = module.OUTPUT_PATH

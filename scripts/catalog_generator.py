@@ -44,6 +44,7 @@ def build_catalog(repo_root: Path) -> list[dict[str, str]]:
 def write_catalog(catalog: list[dict[str, str]], output_path: Path) -> None:
     with output_path.open("w", encoding="utf-8") as file_handle:
         json.dump(catalog, file_handle, indent=2)
+        file_handle.write("\n")
 
 
 def main() -> None:
