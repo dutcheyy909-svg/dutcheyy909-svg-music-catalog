@@ -42,7 +42,8 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
         self.assertTrue({"librosa", "numpy", "pytest", "PyYAML"}.issubset(requirement_names))
 
     def test_extractor_is_compatibility_wrapper_for_analyzer(self):
-        self.assertEqual(extractor.__all__, analyzer.__all__)
+        self.assertTrue(set(analyzer.__all__).issubset(extractor.__all__))
+        self.assertTrue({"csv", "json", "librosa", "np", "Path"}.issubset(extractor.__all__))
         self.assertIs(extractor.generate_sync_tags, analyzer.generate_sync_tags)
         self.assertIs(extractor.analyze_audio_features, analyzer.analyze_audio_features)
         self.assertIs(extractor.detect_duplicates, analyzer.detect_duplicates)
