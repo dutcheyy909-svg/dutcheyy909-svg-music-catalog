@@ -14,7 +14,8 @@ README_CONTENT = dedent(
     - `music-catalog/` — project and catalog metadata
     - `releases/` — release metadata and schemas
     - `sync_cues/` — sync cue metadata and examples
-    - `scripts/` — repository automation utilities
+    - `automation/scripts/` — README automation utilities
+    - `scripts/` — repository catalog utilities
     - `src/` — Python source files
     - `Studio Workflow Notes/` — studio process documentation
     - `turbo-adventure/metadata/` — track metadata examples
