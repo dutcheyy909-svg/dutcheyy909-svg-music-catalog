@@ -1,4 +1,5 @@
 import re
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -34,7 +35,12 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
                 if len(line) - len(line.lstrip()) != top_level_indent:
                     continue
 
-                normalized_lines[index] = re.sub(r'(?i)^(\s*)on:(.*)$', r'\1"on":\2', line, count=1)
+                normalized_lines[index] = re.sub(
+                    r'(?i)^(\s*)on(\s*):(.*)$',
+                    r'\1"on"\2:\3',
+                    line,
+                    count=1,
+                )
                 if normalized_lines[index] != line:
                     break
 
@@ -86,6 +92,33 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
 
     def test_workflow_exists(self):
         self.assertTrue(WORKFLOW_PATH.is_file())
+
+    def test_get_workflow_normalizes_unquoted_top_level_on_key(self):
+        workflow_text = """name: Example
+on:
+  push:
+    branches:
+      - main
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps: []
+"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_workflow_path = Path(temp_dir) / "workflow.yml"
+            temp_workflow_path.write_text(workflow_text, encoding="utf-8")
+
+            global WORKFLOW_PATH
+            original_workflow_path = WORKFLOW_PATH
+            try:
+                WORKFLOW_PATH = temp_workflow_path
+                workflow = self._get_workflow()
+            finally:
+                WORKFLOW_PATH = original_workflow_path
+
+        self.assertIn("on", workflow)
+        self.assertNotIn(True, workflow)
+        self.assertEqual(workflow["on"]["push"]["branches"], ["main"])
 
     def test_workflow_triggers_on_push_to_main(self):
         self.assertEqual(self._get_workflow().get("name"), "Auto-Update README")
