@@ -14,18 +14,20 @@ SKIP_DIR_NAMES = {
     "node_modules",
     "output",
 }
-SKIP_FILE_NAMES = {OUTPUT_PATH.name, "CATALOG.md"}
+SKIP_FILE_NAMES = {"CATALOG.md"}
 
 
-def build_catalog(repo_root: Path) -> list[dict[str, str]]:
+def build_catalog(repo_root: Path, output_path: Path | None = None) -> list[dict[str, str]]:
     entries_by_path = {}
+    active_output_path = output_path or OUTPUT_PATH
+    skip_file_names = SKIP_FILE_NAMES | {active_output_path.name}
 
     for root, dirs, files in os.walk(repo_root):
         dirs[:] = sorted(directory for directory in dirs if directory not in SKIP_DIR_NAMES)
         root_path = Path(root)
 
         for filename in sorted(files):
-            if filename in SKIP_FILE_NAMES:
+            if filename in skip_file_names:
                 continue
 
             file_path = root_path / filename
@@ -48,7 +50,7 @@ def write_catalog(catalog: list[dict[str, str]], output_path: Path) -> None:
 
 
 def main() -> None:
-    catalog = build_catalog(REPO_ROOT)
+    catalog = build_catalog(REPO_ROOT, OUTPUT_PATH)
     write_catalog(catalog, OUTPUT_PATH)
     print(f"Found {len(catalog)} audio files")
 
