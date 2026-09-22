@@ -21,6 +21,18 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
     def _get_steps(self):
         return self.workflow["jobs"]["update-readme"]["steps"]
 
+    def _find_step_by_uses(self, action):
+        for step in self._get_steps():
+            if step.get("uses") == action:
+                return step
+        self.fail(f"Expected step using {action!r}")
+
+    def _find_step_containing_run(self, text):
+        for step in self._get_steps():
+            if text in step.get("run", ""):
+                return step
+        self.fail(f"Expected step containing run text {text!r}")
+
     def test_workflow_exists(self):
         self.assertTrue(WORKFLOW_PATH.is_file())
 
@@ -29,16 +41,19 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         self.assertEqual(self._get_push_config()["branches"], ["main"])
 
     def test_workflow_sets_up_python_and_generates_readme(self):
-        steps = self._get_steps()
-        self.assertEqual(steps[0]["uses"], "actions/checkout@v5")
-        self.assertEqual(steps[1]["uses"], "actions/setup-python@v5")
-        self.assertEqual(steps[1]["with"]["python-version"], "3.11")
-        self.assertEqual(steps[3]["run"], "python automation/scripts/generate-readme.py")
+        self.assertEqual(self._find_step_by_uses("actions/checkout@v5")["name"], "Checkout repository")
+        setup_python_step = self._find_step_by_uses("actions/setup-python@v5")
+        self.assertEqual(setup_python_step["with"]["python-version"], "3.11")
+        self.assertEqual(
+            self._find_step_containing_run("python automation/scripts/generate-readme.py")["name"],
+            "Generate README",
+        )
 
     def test_workflow_commits_updated_readme(self):
-        commit_step = self._get_steps()[4]["run"]
-        self.assertIn("automation/scripts/requirements.txt", self._get_steps()[2]["run"])
-        self.assertIn("git add README.md", commit_step)
+        install_step = self._find_step_containing_run("automation/scripts/requirements.txt")
+        self.assertEqual(install_step["name"], "Install dependencies")
+
+        commit_step = self._find_step_containing_run("git add README.md")["run"]
         self.assertIn('git commit -m "Auto-update README"', commit_step)
         self.assertIn("git push", commit_step)
 
