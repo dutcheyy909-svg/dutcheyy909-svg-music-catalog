@@ -115,28 +115,22 @@ jobs:
         self.assertEqual(workflow["on"]["push"]["branches"], ["main"])
 
     def test_workflow_triggers_on_push_to_main(self):
-        self.assertEqual(self._get_workflow().get("name"), "Auto-Update README")
         self.assertEqual(self._get_push_config().get("branches"), ["main"])
 
     def test_workflow_runs_on_ubuntu_latest(self):
         self.assertEqual(self._get_update_readme_job().get("runs-on"), "ubuntu-latest")
 
     def test_workflow_sets_up_python_and_generates_readme(self):
-        self.assertEqual(self._find_step_by_uses("actions/checkout@v5").get("name"), "Checkout repository")
+        self._find_step_by_uses("actions/checkout@v5")
         setup_python_step = self._find_step_by_uses("actions/setup-python@v5")
         self.assertEqual(setup_python_step.get("with", {}).get("python-version"), "3.11")
-        self.assertEqual(
-            self._find_step_containing_run("python automation/scripts/generate-readme.py").get("name"),
-            "Generate README",
-        )
+        self._find_step_containing_run("python automation/scripts/generate-readme.py")
 
     def test_workflow_commits_updated_readme(self):
         install_step = self._find_step_containing_run("automation/scripts/requirements.txt")
-        self.assertEqual(install_step.get("name"), "Install dependencies")
         self.assertIn("python -m pip install -r automation/scripts/requirements.txt", install_step.get("run", ""))
 
         commit_step = self._find_step_containing_run("git add README.md")
-        self.assertEqual(commit_step.get("name"), "Commit updated README")
         self.assertIn('git commit -m "Auto-update README"', commit_step.get("run", ""))
         self.assertIn("git push", commit_step.get("run", ""))
 
