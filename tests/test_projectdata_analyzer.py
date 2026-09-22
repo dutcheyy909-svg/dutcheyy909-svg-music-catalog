@@ -9,6 +9,7 @@ import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REQUIREMENTS_PATH = REPO_ROOT / "requirements.txt"
+TURBO_REQUIREMENTS_PATH = REPO_ROOT / "turbo-adventure" / "requirements.txt"
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 analyzer = importlib.import_module("projectdata_analyzer")
@@ -22,6 +23,11 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
             for line in REQUIREMENTS_PATH.read_text(encoding="utf-8").splitlines()
             if line.split("#", 1)[0].strip() and not line.split("#", 1)[0].strip().startswith("-")
         }
+        turbo_requirement_lines = {
+            line.split("#", 1)[0].strip()
+            for line in TURBO_REQUIREMENTS_PATH.read_text(encoding="utf-8").splitlines()
+            if line.split("#", 1)[0].strip() and not line.split("#", 1)[0].strip().startswith("-")
+        }
 
         self.assertTrue(
             {
@@ -31,6 +37,14 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
                 "PyYAML>=6,<7",
             }.issubset(requirement_lines)
         )
+        self.assertEqual(
+            turbo_requirement_lines,
+            {
+                "librosa==0.10.0",
+                "numpy>=1.26,<2",
+            },
+        )
+        self.assertTrue(turbo_requirement_lines.issubset(requirement_lines))
 
     def test_extractor_is_compatibility_wrapper_for_analyzer(self):
         self.assertTrue(set(analyzer.__all__).issubset(extractor.__all__))
