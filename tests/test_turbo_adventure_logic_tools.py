@@ -154,11 +154,31 @@ def test_load_track_metadata_rejects_invalid_required_field_types(tmp_path):
         encoding="utf-8",
     )
     (tmp_path / "nan_bpm.json").write_text(
-        """{"title":"NaN BPM","composer":"Duncan","bpm":NaN,"key":"A Minor","genre":"Electronic","file_path":"tracks/nan-bpm.wav"}""",
+        json.dumps(
+            {
+                "title": "NaN BPM",
+                "composer": "Duncan",
+                "bpm": float("nan"),
+                "key": "A Minor",
+                "genre": "Electronic",
+                "file_path": "tracks/nan-bpm.wav",
+            },
+            allow_nan=True,
+        ),
         encoding="utf-8",
     )
     (tmp_path / "infinite_bpm.json").write_text(
-        """{"title":"Infinite BPM","composer":"Duncan","bpm":Infinity,"key":"A Minor","genre":"Electronic","file_path":"tracks/infinite-bpm.wav"}""",
+        json.dumps(
+            {
+                "title": "Infinite BPM",
+                "composer": "Duncan",
+                "bpm": float("inf"),
+                "key": "A Minor",
+                "genre": "Electronic",
+                "file_path": "tracks/infinite-bpm.wav",
+            },
+            allow_nan=True,
+        ),
         encoding="utf-8",
     )
     (tmp_path / "invalid_title.json").write_text(
