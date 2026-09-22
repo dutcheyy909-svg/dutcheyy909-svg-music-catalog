@@ -1,4 +1,5 @@
 import importlib.util
+import re
 import sys
 import tempfile
 import unittest
@@ -29,13 +30,19 @@ extractor = load_module("projectdata_extractor", EXTRACTOR_PATH)
 
 class ProjectDataAnalyzerTests(unittest.TestCase):
     def test_root_requirements_cover_runtime_and_test_dependencies(self):
-        requirements = REQUIREMENTS_PATH.read_text(encoding="utf-8")
-        self.assertIn("librosa", requirements)
-        self.assertIn("numpy", requirements)
-        self.assertIn("pytest", requirements)
-        self.assertIn("PyYAML", requirements)
+        requirement_names = set()
+        for line in REQUIREMENTS_PATH.read_text(encoding="utf-8").splitlines():
+            stripped = line.split("#", 1)[0].strip()
+            if not stripped or stripped.startswith("-"):
+                continue
+            match = re.match(r"[A-Za-z0-9_.-]+", stripped)
+            self.assertIsNotNone(match)
+            requirement_names.add(match.group(0))
+
+        self.assertTrue({"librosa", "numpy", "pytest", "PyYAML"}.issubset(requirement_names))
 
     def test_extractor_is_compatibility_wrapper_for_analyzer(self):
+        self.assertEqual(extractor.__all__, analyzer.__all__)
         self.assertIs(extractor.generate_sync_tags, analyzer.generate_sync_tags)
         self.assertIs(extractor.analyze_audio_features, analyzer.analyze_audio_features)
         self.assertIs(extractor.detect_duplicates, analyzer.detect_duplicates)
