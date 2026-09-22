@@ -1,6 +1,5 @@
-import importlib.util
+import importlib
 import re
-import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,23 +8,9 @@ import numpy as np
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ANALYZER_PATH = REPO_ROOT / "projectdata_analyzer.py"
-EXTRACTOR_PATH = REPO_ROOT / "projectdata_extractor.py"
 REQUIREMENTS_PATH = REPO_ROOT / "requirements.txt"
-
-
-def load_module(module_name, path):
-    spec = importlib.util.spec_from_file_location(module_name, path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"Unable to load {module_name} from {path}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-analyzer = load_module("projectdata_analyzer", ANALYZER_PATH)
-extractor = load_module("projectdata_extractor", EXTRACTOR_PATH)
+analyzer = importlib.import_module("projectdata_analyzer")
+extractor = importlib.import_module("projectdata_extractor")
 
 
 class ProjectDataAnalyzerTests(unittest.TestCase):
