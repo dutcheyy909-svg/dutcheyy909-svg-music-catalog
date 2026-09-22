@@ -61,16 +61,6 @@ def parse_metadata_timestamp(metadata: dict[str, Any]) -> datetime:
     return datetime.min.replace(tzinfo=timezone.utc)
 
 
-def latest_track_sort_key(track: tuple[Path, dict[str, Any]]) -> tuple[datetime, str, str, str]:
-    metadata = track[1]
-    return (
-        parse_metadata_timestamp(metadata),
-        str(metadata.get("title", "")),
-        str(metadata.get("composer", "")),
-        track[0].name,
-    )
-
-
 def build_latest_metadata(metadata_dir: Path = METADATA_DIR) -> dict[str, Any]:
     tracks = load_track_metadata(metadata_dir)
     if not tracks:
@@ -80,7 +70,11 @@ def build_latest_metadata(metadata_dir: Path = METADATA_DIR) -> dict[str, Any]:
             "key, genre, and either file_path or files"
         )
 
-    latest_file, latest_metadata = max(tracks, key=latest_track_sort_key)
+    latest_timestamp = max(parse_metadata_timestamp(metadata) for _, metadata in tracks)
+    latest_candidates = [
+        track for track in tracks if parse_metadata_timestamp(track[1]) == latest_timestamp
+    ]
+    latest_file, latest_metadata = min(latest_candidates, key=lambda track: track[0].name)
 
     result = dict(latest_metadata)
     result["metadata_file"] = latest_file.name

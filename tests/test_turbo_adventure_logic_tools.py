@@ -136,7 +136,7 @@ def test_build_latest_metadata_uses_filename_only_for_exact_metadata_ties(tmp_pa
 
     latest = extract_metadata.build_latest_metadata(tmp_path)
 
-    assert latest["metadata_file"] == "zeta.json"
+    assert latest["metadata_file"] == "alpha.json"
 
 
 def test_write_latest_metadata_serializes_metadata_file(metadata_dir, tmp_path):
