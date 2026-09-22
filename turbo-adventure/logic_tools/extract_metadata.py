@@ -64,6 +64,7 @@ def latest_track_sort_key(track: tuple[Path, dict[str, Any]]) -> tuple[datetime,
         parse_metadata_timestamp(metadata),
         str(metadata.get("title", "")),
         str(metadata.get("composer", "")),
+        track[0].name,
     )
 
 

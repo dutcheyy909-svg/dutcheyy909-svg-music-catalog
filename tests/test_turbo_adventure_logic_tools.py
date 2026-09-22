@@ -119,6 +119,26 @@ def test_build_latest_metadata_uses_metadata_tiebreaker_instead_of_filename(tmp_
 
 
 
+
+def test_build_latest_metadata_uses_filename_only_for_exact_metadata_ties(tmp_path):
+    duplicate_payload = {
+        "title": "Shared Title",
+        "composer": "Duncan",
+        "bpm": 110,
+        "key": "C Major",
+        "genre": "Pop",
+        "updated_at": "2026-09-21T10:15:00Z",
+        "file_path": "tracks/shared.wav",
+    }
+
+    for name in ["alpha.json", "zeta.json"]:
+        (tmp_path / name).write_text(json.dumps(duplicate_payload), encoding="utf-8")
+
+    latest = extract_metadata.build_latest_metadata(tmp_path)
+
+    assert latest["metadata_file"] == "zeta.json"
+
+
 def test_write_latest_metadata_serializes_metadata_file(metadata_dir, tmp_path):
     output_path = tmp_path / "latest_metadata.json"
 
