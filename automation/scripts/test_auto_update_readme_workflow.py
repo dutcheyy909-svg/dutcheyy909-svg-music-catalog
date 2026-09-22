@@ -15,25 +15,9 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         except ImportError as exc:
             self.skipTest(f"PyYAML is required for workflow parsing: {exc}")
 
-        class WorkflowLoader(yaml.SafeLoader):
-            pass
-
-        WorkflowLoader.yaml_implicit_resolvers = {
-            key: [resolver for resolver in value if resolver[0] != "tag:yaml.org,2002:bool"]
-            for key, value in yaml.SafeLoader.yaml_implicit_resolvers.items()
-        }
-
         workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
-        workflow = yaml.load(workflow_text, Loader=WorkflowLoader)
-        if (
-            isinstance(workflow, dict)
-            and "on" not in workflow
-            and True in workflow
-            and re.search(r"(?m)^on:\s*(?:$|#)", workflow_text)
-        ):
-            workflow = dict(workflow)
-            workflow["on"] = workflow.pop(True)
-        return workflow
+        normalized_workflow_text = re.sub(r"(?m)^on:(.*)$", r'"on":\1', workflow_text, count=1)
+        return yaml.safe_load(normalized_workflow_text)
 
     def _get_push_config(self):
         workflow_on = self._get_workflow().get("on")
