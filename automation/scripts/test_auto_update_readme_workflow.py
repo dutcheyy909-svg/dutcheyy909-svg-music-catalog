@@ -19,16 +19,16 @@ WorkflowLoader.yaml_implicit_resolvers = {
 
 
 class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
+    def _get_workflow(self):
+        self.assertTrue(WORKFLOW_PATH.is_file())
         workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
-        cls.workflow = yaml.load(workflow_text, Loader=WorkflowLoader)
+        return yaml.load(workflow_text, Loader=WorkflowLoader)
 
     def _get_push_config(self):
-        return self.workflow["on"]["push"]
+        return self._get_workflow()["on"]["push"]
 
     def _get_steps(self):
-        return self.workflow["jobs"]["update-readme"]["steps"]
+        return self._get_workflow()["jobs"]["update-readme"]["steps"]
 
     def _find_step_by_uses(self, action):
         for step in self._get_steps():
@@ -46,7 +46,7 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         self.assertTrue(WORKFLOW_PATH.is_file())
 
     def test_workflow_triggers_on_push_to_main(self):
-        self.assertEqual(self.workflow["name"], "Auto-Update README")
+        self.assertEqual(self._get_workflow()["name"], "Auto-Update README")
         self.assertEqual(self._get_push_config()["branches"], ["main"])
 
     def test_workflow_sets_up_python_and_generates_readme(self):
