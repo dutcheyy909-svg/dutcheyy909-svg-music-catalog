@@ -16,7 +16,29 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
             self.skipTest(f"PyYAML is required for workflow parsing: {exc}")
 
         workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
-        normalized_workflow_text = re.sub(r'(?im)^(\s*)on:(.*)$', r'\1"on":\2', workflow_text, count=1)
+        lines = workflow_text.splitlines(keepends=True)
+        top_level_indent = None
+        for line in lines:
+            stripped_line = line.strip()
+            if stripped_line and not stripped_line.startswith("#"):
+                top_level_indent = len(line) - len(line.lstrip())
+                break
+
+        normalized_lines = list(lines)
+        if top_level_indent is not None:
+            for index, line in enumerate(lines):
+                stripped_line = line.strip()
+                if not stripped_line or stripped_line.startswith("#"):
+                    continue
+
+                if len(line) - len(line.lstrip()) != top_level_indent:
+                    continue
+
+                normalized_lines[index] = re.sub(r'(?i)^(\s*)on:(.*)$', r'\1"on":\2', line, count=1)
+                if normalized_lines[index] != line:
+                    break
+
+        normalized_workflow_text = "".join(normalized_lines)
         return yaml.safe_load(normalized_workflow_text)
 
     def _get_push_config(self):
