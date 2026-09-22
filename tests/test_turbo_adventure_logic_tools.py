@@ -87,6 +87,27 @@ def test_load_track_metadata_ignores_non_track_json_objects(metadata_dir):
     assert [metadata_file.name for metadata_file, _ in tracks] == ["track_a.json", "track_b.json"]
 
 
+def test_is_track_metadata_rejects_null_or_invalid_file_locations():
+    invalid = [
+        {"title": "Track A", "composer": "Duncan", "bpm": 100, "key": "C Major", "genre": "Pop", "file_path": None},
+        {"title": "Track A", "composer": "Duncan", "bpm": 100, "key": "C Major", "genre": "Pop", "files": []},
+        {"title": "Track A", "composer": "Duncan", "bpm": "100", "key": "C Major", "genre": "Pop", "file_path": "tracks/track_a.wav"},
+        {"title": "Track A", "composer": "Duncan", "bpm": 100, "key": "C Major", "genre": "Pop", "files": {"wav": "track.wav"}},
+    ]
+    valid = {
+        "title": "Track A",
+        "composer": "Duncan",
+        "bpm": 100,
+        "key": "C Major",
+        "genre": "Pop",
+        "files": {"wav": "tracks/track_a.wav", "mp3": "tracks/track_a.mp3"},
+    }
+
+    for payload in invalid:
+        assert not extract_metadata.is_track_metadata(payload)
+    assert extract_metadata.is_track_metadata(valid)
+
+
 def test_build_latest_metadata_uses_filename_for_equal_timestamps(tmp_path):
     for name, payload in {
         "zeta.json": {
