@@ -1,0 +1,82 @@
+name: Validate JSON Files
+
+on:
+  push:
+    paths:
+      - "**/*.json"
+  pull_request:
+    paths:
+      - "**/*.json"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-json:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install jsonschema
+
+      - name: Validate JSON files
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from jsonschema import Draft7Validator, Draft202012Validator
+
+          validators = {
+              Path("releases/release.schema.json"): Draft7Validator,
+              Path("sync_cues/sync_cue.schema.json"): Draft7Validator,
+              Path("music-catalog/projects/project.schema.json"): Draft202012Validator,
+              Path("turbo-adventure/metadata/track.schema.json"): Draft7Validator,
+          }
+
+          schema_cache = {}
+          all_json_files = sorted(Path(".").rglob("*.json"))
+
+          for json_file in all_json_files:
+              if json_file.name.endswith(".schema.json"):
+                  continue
+
+              content = json_file.read_text(encoding="utf-8")
+              instance = json.loads(content)
+              print(f"Syntax OK: {json_file}")
+
+              schema_path = None
+              if json_file.parent == Path("releases"):
+                  schema_path = Path("releases/release.schema.json")
+              elif json_file.parent == Path("sync_cues"):
+                  schema_path = Path("sync_cues/sync_cue.schema.json")
+              elif json_file.parent == Path("music-catalog/projects"):
+                  schema_path = Path("music-catalog/projects/project.schema.json")
+              elif json_file.parent == Path("turbo-adventure/metadata") and json_file.name != "sync_metadata.json":
+                  schema_path = Path("turbo-adventure/metadata/track.schema.json")
+
+              if schema_path is None:
+                  continue
+
+              if schema_path not in schema_cache:
+                  schema_cache[schema_path] = json.loads(schema_path.read_text(encoding="utf-8"))
+
+              validator_cls = validators[schema_path]
+              validator = validator_cls(schema_cache[schema_path])
+              errors = sorted(validator.iter_errors(instance), key=lambda e: list(e.path))
+              if errors:
+                  details = "; ".join(
+                      f"path={list(error.path)} message={error.message}" for error in errors
+                  )
+                  raise ValueError(f"Schema validation failed for {json_file}: {details}")
+
+              print(f"Schema OK: {json_file} (schema: {schema_path})")
+          PY
