@@ -194,6 +194,19 @@ def test_load_track_metadata_rejects_invalid_required_field_types(tmp_path):
         ),
         encoding="utf-8",
     )
+    (tmp_path / "invalid_composer.json").write_text(
+        json.dumps(
+            {
+                "title": "Valid Title",
+                "composer": "   ",
+                "bpm": 120,
+                "key": "A Minor",
+                "genre": "Electronic",
+                "file_path": "tracks/invalid-composer.wav",
+            }
+        ),
+        encoding="utf-8",
+    )
 
     assert extract_metadata.load_track_metadata(tmp_path) == []
 
