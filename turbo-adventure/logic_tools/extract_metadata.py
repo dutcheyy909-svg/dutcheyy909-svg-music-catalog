@@ -145,7 +145,10 @@ def write_latest_metadata(
         temp_file.write(json.dumps(latest_metadata, indent=2, ensure_ascii=False) + "\n")
         temp_output_path = Path(temp_file.name)
 
-    temp_output_path.replace(output_path)
+    try:
+        temp_output_path.replace(output_path)
+    finally:
+        temp_output_path.unlink(missing_ok=True)
     return output_path
 
 
