@@ -8,6 +8,7 @@ AUDIO_EXTENSIONS = {".mp3", ".wav"}
 SKIP_DIR_NAMES = {
     ".git",
     "__pycache__",
+    "__pycache__",
     "build",
     "dist",
     "generated",
