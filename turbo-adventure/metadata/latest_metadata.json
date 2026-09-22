@@ -57,5 +57,6 @@
   "peak_db": "-0.3",
   "file_path": "cues/last_laugh/upbeat/last_laugh_upbeat.wav",
   "created_at": "2026-09-01",
-  "metadata_file": "last_laugh_instrumental.json"
+  "metadata_file": "last_laugh_instrumental.json",
+  "_generated_by": "logic_tools.extract_metadata"
 }

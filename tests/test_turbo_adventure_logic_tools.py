@@ -147,8 +147,21 @@ def test_write_latest_metadata_serializes_metadata_file(metadata_dir, tmp_path):
 
     assert written_path == output_path
     assert written["metadata_file"] == "track_a.json"
+    assert written["_generated_by"] == extract_metadata.GENERATED_METADATA_MARKER
     assert written["title"] == "Track A"
     assert output_path.read_text(encoding="utf-8").endswith("\n")
+
+
+
+def test_generated_latest_outputs_are_not_retreated_as_source_tracks(metadata_dir):
+    derived_output = metadata_dir / "custom_latest_snapshot.json"
+    extract_metadata.write_latest_metadata(output_path=derived_output, metadata_dir=metadata_dir)
+
+    latest = extract_metadata.build_latest_metadata(metadata_dir)
+    track_files = [metadata_file.name for metadata_file, _ in extract_metadata.load_track_metadata(metadata_dir)]
+
+    assert latest["metadata_file"] == "track_a.json"
+    assert "custom_latest_snapshot.json" not in track_files
 
 
 def test_write_sync_metadata_serializes_track_index(metadata_dir, tmp_path):

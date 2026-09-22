@@ -10,11 +10,14 @@ METADATA_DIR = ROOT_DIR / "metadata"
 LATEST_METADATA_PATH = METADATA_DIR / "latest_metadata.json"
 TRACK_FILES_TO_SKIP = {"latest_metadata.json", "sync_metadata.json", "track.schema.json"}
 TRACK_REQUIRED_FIELDS = {"title", "composer", "bpm", "key", "genre"}
+GENERATED_METADATA_MARKER = "logic_tools.extract_metadata"
 TIMESTAMP_KEYS = ("updated_at", "updated", "created_at", "created")
 
 
 def is_track_metadata(metadata: Any) -> bool:
     if not isinstance(metadata, dict):
+        return False
+    if metadata.get("_generated_by") == GENERATED_METADATA_MARKER:
         return False
     if not TRACK_REQUIRED_FIELDS.issubset(metadata):
         return False
@@ -81,6 +84,7 @@ def build_latest_metadata(metadata_dir: Path = METADATA_DIR) -> dict[str, Any]:
 
     result = dict(latest_metadata)
     result["metadata_file"] = latest_file.name
+    result["_generated_by"] = GENERATED_METADATA_MARKER
     return result
 
 
