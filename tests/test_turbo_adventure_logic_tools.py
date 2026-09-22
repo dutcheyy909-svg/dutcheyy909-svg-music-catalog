@@ -81,10 +81,43 @@ def test_parse_metadata_timestamp_uses_newest_supported_timestamp():
     assert parsed.isoformat() == "2026-09-21T09:00:00+00:00"
 
 
+def test_parse_metadata_timestamp_ignores_non_string_values():
+    parsed = extract_metadata.parse_metadata_timestamp(
+        {
+            "updated_at": 20260921,
+            "created_at": "   ",
+            "created": "2026-09-20",
+        }
+    )
+
+    assert parsed.isoformat() == "2026-09-20T00:00:00+00:00"
+
+
 def test_load_track_metadata_ignores_non_track_json_objects(metadata_dir):
     tracks = extract_metadata.load_track_metadata(metadata_dir)
 
     assert [metadata_file.name for metadata_file, _ in tracks] == ["track_a.json", "track_b.json"]
+
+
+def test_load_track_metadata_skips_malformed_json(tmp_path):
+    (tmp_path / "track_a.json").write_text(
+        json.dumps(
+            {
+                "title": "Track A",
+                "composer": "Duncan",
+                "bpm": 100,
+                "key": "C Major",
+                "genre": "Pop",
+                "file_path": "tracks/track_a.wav",
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "broken.json").write_text('{"title": "Broken"', encoding="utf-8")
+
+    tracks = extract_metadata.load_track_metadata(tmp_path)
+
+    assert [metadata_file.name for metadata_file, _ in tracks] == ["track_a.json"]
 
 
 def test_is_track_metadata_rejects_null_or_invalid_file_locations():
@@ -147,6 +180,16 @@ def test_write_latest_metadata_serializes_metadata_file(metadata_dir, tmp_path):
     assert written["_generated_by"] == extract_metadata.GENERATED_METADATA_MARKER
     assert written["title"] == "Track A"
     assert output_path.read_text(encoding="utf-8").endswith("\n")
+
+
+def test_write_latest_metadata_creates_missing_parent(metadata_dir, tmp_path):
+    output_path = tmp_path / "generated" / "latest_metadata.json"
+
+    written_path = extract_metadata.write_latest_metadata(output_path=output_path, metadata_dir=metadata_dir)
+
+    assert written_path == output_path
+    assert output_path.exists()
+    assert json.loads(output_path.read_text(encoding="utf-8"))["metadata_file"] == "track_a.json"
 
 
 def test_generated_latest_outputs_are_not_retreated_as_source_tracks(metadata_dir):

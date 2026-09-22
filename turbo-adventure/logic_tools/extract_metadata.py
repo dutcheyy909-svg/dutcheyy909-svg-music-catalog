@@ -64,7 +64,10 @@ def load_track_metadata(metadata_dir: Path = METADATA_DIR) -> list[tuple[Path, d
         if metadata_file.name in TRACK_FILES_TO_SKIP:
             continue
 
-        metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+        try:
+            metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            continue
         if is_track_metadata(metadata):
             tracks.append((metadata_file, metadata))
 
@@ -76,10 +79,12 @@ def parse_metadata_timestamp(metadata: dict[str, Any]) -> datetime:
 
     for key in TIMESTAMP_KEYS:
         value = metadata.get(key)
-        if not value:
+        if not is_nonempty_string(value):
             continue
 
-        normalized = str(value).replace("Z", "+00:00")
+        normalized = value.strip()
+        if normalized.endswith(("Z", "z")):
+            normalized = normalized[:-1] + "+00:00"
         try:
             parsed = datetime.fromisoformat(normalized)
         except ValueError:
@@ -127,10 +132,13 @@ def write_latest_metadata(
     metadata_dir: Path = METADATA_DIR,
 ) -> Path:
     latest_metadata = build_latest_metadata(metadata_dir)
-    output_path.write_text(
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_output_path = output_path.with_suffix(output_path.suffix + ".tmp")
+    temp_output_path.write_text(
         json.dumps(latest_metadata, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
+    temp_output_path.replace(output_path)
     return output_path
 
 
