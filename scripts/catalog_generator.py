@@ -1,33 +1,13 @@
-import json
 from pathlib import Path
 
-tracks = []
+catalog = []
 
 for file in Path(".").rglob("*.json"):
-    try:
-        with open(file, "r") as f:
-            data = json.load(f)
-            tracks.append(data)
-    except Exception:
-        pass
+    catalog.append(str(file))
 
 with open("CATALOG.md", "w") as f:
-    f.write("# DUTCHEYY Music Catalog\n\n")
+    f.write("# Music Catalog\n\n")
+    for item in catalog:
+        f.write(f"- {item}\n")
 
-    for track in tracks:
-        f.write(f"## {track.get('title', 'Unknown')}\n")
-        f.write(f"Artist: {track.get('artist', 'Unknown')}\n")
-        f.write(f"Album: {track.get('album', 'Unknown')}\n")
-        f.write(f"Genre: {track.get('genre', 'Unknown')}\n")
-        f.write(f"Subgenre: {track.get('subgenre', 'Unknown')}\n")
-        f.write(f"BPM: {track.get('bpm', 'Unknown')}\n")
-        f.write(f"Key: {track.get('key', 'Unknown')}\n")
-        f.write(f"Mood: {track.get('mood', 'Unknown')}\n")
-        f.write(f"Duration: {track.get('duration', 'Unknown')}\n")
-        f.write(f"Vocals: {track.get('vocals', 'Unknown')}\n")
-        f.write(f"Release Date: {track.get('release_date', 'Unknown')}\n")
-
-        keywords = ", ".join(track.get("keywords", []))
-        f.write(f"Keywords: {keywords}\n\n")
-
-print(f"Processed {len(tracks)} tracks")
+print(f"Indexed {len(catalog)} files")
