@@ -167,36 +167,6 @@ def analyze_liveness(y, sr):
 
     liveness = (onset_density / 5.0) * 0.6 + (high_energy / 5.0) * 0.4
     return max(0.0, min(liveness, 1.0))
-
-
-def analyze_energy_danceability(y, sr):
-    """
-    Approximate energy, danceability, acousticness, and movement from the signal.
-    """
-    rms = librosa.feature.rms(y=y)
-    energy = float(np.mean(rms)) * 10.0
-
-    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
-    tempo, _ = librosa.beat.beat_track(onset_envelope=onset_env, sr=sr)
-    danceability = (float(np.mean(onset_env)) / 5.0) * 0.5 + (float(tempo) / 200.0) * 0.5
-
-    spec = np.abs(librosa.stft(y))
-    freqs = librosa.fft_frequencies(sr=sr)
-    high_band = spec[freqs > 4000]
-    low_band = spec[freqs <= 4000]
-    high_energy = float(np.mean(high_band)) if high_band.size > 0 else 0.0
-    low_energy = float(np.mean(low_band)) if low_band.size > 0 else 0.0
-    acousticness = 1.0 - (high_energy / (low_energy + high_energy + 1e-9))
-
-    movement = (energy + danceability) / 2.0
-
-    return {
-        "energy": max(0.0, min(energy, 1.0)),
-        "danceability": max(0.0, min(danceability, 1.0)),
-        "acousticness": max(0.0, min(acousticness, 1.0)),
-        "movement": max(0.0, min(movement, 1.0))
-    }
-
 # ---------------------------------------------------------
 #  Combine all JSON + CSV into unified structures
 # ---------------------------------------------------------
@@ -254,6 +224,45 @@ def detect_duplicates(combined_csv, key="id"):
 # ---------------------------------------------------------
 #  Audio Analysis (BPM, brightness, mood)
 # ---------------------------------------------------------
+def analyze_energy_danceability(y, sr):
+    """Infer normalized energy, danceability, acousticness, and movement."""
+    try:
+        rms = librosa.feature.rms(y=y)
+        mean_rms = float(np.mean(rms)) if rms.size else 0.0
+        energy = max(0.0, min(1.0, mean_rms / 0.1))
+
+        tempos = librosa.beat.tempo(y=y, sr=sr)
+        tempo = float(tempos[0]) if tempos.size else 0.0
+
+        onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+        onset_density = float(np.mean(onset_env)) if onset_env.size else 0.0
+        tempo_norm = min(1.0, tempo / 150.0)
+        onset_norm = min(1.0, onset_density / 5.0)
+        danceability = max(0.0, min(1.0, tempo_norm * 0.6 + onset_norm * 0.4))
+
+        rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)
+        rolloff_mean = float(np.mean(rolloff)) if rolloff.size else 0.0
+        acousticness = 1.0 - min(1.0, rolloff_mean / (sr / 2.0))
+
+        spec_bw = librosa.feature.spectral_bandwidth(y=y, sr=sr)
+        movement = float(np.mean(spec_bw)) if spec_bw.size else 0.0
+        movement = max(0.0, min(1.0, movement / 5000.0))
+
+        return {
+            "energy": energy,
+            "danceability": danceability,
+            "acousticness": acousticness,
+            "movement": movement
+        }
+    except Exception:
+        return {
+            "energy": 0.5,
+            "danceability": 0.5,
+            "acousticness": 0.5,
+            "movement": 0.5
+        }
+
+
 def analyze_audio_features(audio_path):
     try:
         y, sr = librosa.load(audio_path, sr=None)
