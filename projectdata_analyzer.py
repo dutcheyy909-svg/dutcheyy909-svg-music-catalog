@@ -1,9 +1,85 @@
-import json
 import csv
-from pathlib import Path
+import json
+import logging
 from collections import defaultdict
+from collections.abc import Mapping
+from pathlib import Path
+
 import librosa
 import numpy as np
+
+LOGGER = logging.getLogger(__name__)
+
+__all__ = [
+    "analyze_audio_features",
+    "analyze_energy_danceability",
+    "analyze_instrumentalness",
+    "analyze_liveness",
+    "analyze_valence",
+    "combine_all_metadata",
+    "detect_duplicates",
+    "detect_file_types",
+    "export_audiosparx_metadata",
+    "export_ringo_metadata",
+    "export_songtradr_metadata",
+    "export_spotify_features_csv",
+    "generate_report",
+    "generate_sync_tags",
+    "infer_mood",
+    "summarize_metadata",
+]
+
+
+def _coerce_mapping(value):
+    return value if isinstance(value, Mapping) else {}
+
+
+def _metadata_text(value):
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value.lower()
+    if isinstance(value, (list, tuple, set)):
+        return " ".join(str(item) for item in value).lower()
+    return str(value).lower()
+
+
+def _coerce_bpm(value):
+    if value in (None, ""):
+        return None
+    return int(float(value))
+
+
+def _safe_length(value):
+    try:
+        return len(value)
+    except TypeError:
+        return None
+
+
+def _normalize_duplicate_value(value):
+    if value is None:
+        return None
+    if isinstance(value, str):
+        stripped = value.strip()
+        return stripped or None
+    return value
+
+
+def _validate_audio_inputs(y, sr):
+    if y is None:
+        raise ValueError("audio signal is missing")
+
+    audio = np.asarray(y)
+    if audio.size == 0:
+        raise ValueError("audio signal is empty")
+    if not np.issubdtype(audio.dtype, np.number):
+        raise ValueError("audio signal must be numeric")
+    if not isinstance(sr, (int, float, np.integer, np.floating)) or sr <= 0:
+        raise ValueError("sample rate must be positive")
+
+    return audio, sr
+
 
 # ---------------------------------------------------------
 #  Detect file types inside extracted ProjectData folders
@@ -31,26 +107,27 @@ def summarize_metadata(folder):
     for file in folder.glob("*"):
         if file.suffix.lower() == ".json":
             try:
-                with open(file) as f:
-                    data = json.load(f)
+                with file.open(encoding="utf-8") as handle:
+                    data = json.load(handle)
+                keys = list(data.keys()) if isinstance(data, dict) else []
                 summary["json"][file.name] = {
-                    "keys": list(data.keys()),
-                    "length": len(data)
+                    "keys": keys,
+                    "length": _safe_length(data),
+                    "type": type(data).__name__,
                 }
-            except Exception as e:
-                summary["json"][file.name] = {"error": str(e)}
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError) as exc:
+                summary["json"][file.name] = {"error": str(exc)}
 
         elif file.suffix.lower() == ".csv":
             try:
-                with open(file) as f:
-                    reader = csv.reader(f)
-                    rows = list(reader)
+                with file.open(encoding="utf-8", newline="") as handle:
+                    rows = list(csv.reader(handle))
                 summary["csv"][file.name] = {
                     "columns": rows[0] if rows else [],
-                    "rows": len(rows)
+                    "rows": len(rows),
                 }
-            except Exception as e:
-                summary["csv"][file.name] = {"error": str(e)}
+            except (OSError, UnicodeDecodeError, csv.Error, TypeError, ValueError) as exc:
+                summary["csv"][file.name] = {"error": str(exc)}
 
     return summary
 
@@ -60,10 +137,11 @@ def summarize_metadata(folder):
 # ---------------------------------------------------------
 
 def generate_sync_tags(metadata, audio_features=None):
+    metadata = _coerce_mapping(metadata)
+    audio_features = _coerce_mapping(audio_features)
     tags = []
 
-    # Genre-based tags
-    genre = metadata.get("genre", "").lower()
+    genre = _metadata_text(metadata.get("genre"))
     if "edm" in genre:
         tags += ["energetic", "modern", "sports", "gaming", "upbeat"]
     if "trap" in genre:
@@ -73,99 +151,108 @@ def generate_sync_tags(metadata, audio_features=None):
     if "piano" in genre or "emotional" in genre:
         tags += ["emotional", "cinematic", "heartfelt", "film", "advertising"]
 
-    # Mood-based tags
-    mood = metadata.get("mood", "").lower()
+    mood = _metadata_text(metadata.get("mood"))
     if "uplifting" in mood:
         tags += ["positive", "corporate", "advertising", "feel-good"]
     if "tension" in mood:
         tags += ["suspense", "crime", "drama", "trailer"]
 
-    # Instrument-based tags
-    instruments = metadata.get("instruments", "").lower()
+    instruments = _metadata_text(metadata.get("instruments"))
     if "guitar" in instruments:
         tags += ["organic", "warm", "indie"]
     if "synth" in instruments:
         tags += ["electronic", "futuristic", "digital"]
 
-    # BPM-based tags (metadata)
-    bpm = metadata.get("bpm")
-    if bpm:
-        try:
-            bpm = int(bpm)
-            if bpm < 70:
-                tags.append("slow")
-            elif bpm < 110:
-                tags.append("mid-tempo")
-            else:
-                tags.append("fast")
-        except:
-            pass
+    try:
+        bpm_meta = _coerce_bpm(metadata.get("bpm"))
+    except (TypeError, ValueError):
+        bpm_meta = None
 
-    # Audio-analysis tags
-    if audio_features:
-        if audio_features.get("mood"):
-            tags.append(audio_features["mood"])
+    if bpm_meta is not None:
+        if bpm_meta < 70:
+            tags.append("slow")
+        elif bpm_meta < 110:
+            tags.append("mid-tempo")
+        else:
+            tags.append("fast")
 
-        if audio_features.get("bpm"):
-            bpm = audio_features["bpm"]
-            if bpm < 70:
-                tags.append("slow")
-            elif bpm < 110:
-                tags.append("mid-tempo")
-            else:
-                tags.append("fast")
+    if audio_features.get("mood"):
+        tags.append(str(audio_features["mood"]))
 
-    return list(set(tags))
+    try:
+        bpm_audio = _coerce_bpm(audio_features.get("bpm"))
+    except (TypeError, ValueError):
+        bpm_audio = None
+
+    if bpm_audio is not None:
+        if bpm_audio < 70:
+            tags.append("slow")
+        elif bpm_audio < 110:
+            tags.append("mid-tempo")
+        else:
+            tags.append("fast")
+
+    return list(dict.fromkeys(tags))
+
 
 def analyze_valence(y, sr):
     """
     Rough valence estimate (happy vs sad) using key + brightness.
     """
-    # Brightness
-    centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
-    brightness = float(np.mean(centroid))
+    try:
+        y, sr = _validate_audio_inputs(y, sr)
+        centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
+        brightness = float(np.mean(centroid)) if centroid.size else 0.0
 
-    # Chroma (key-ish)
-    chroma = librosa.feature.chroma_stft(y=y, sr=sr)
-    major_energy = float(np.mean(chroma[0:6]))   # C–F#
-    minor_energy = float(np.mean(chroma[6:12]))  # G–B
+        chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+        major_energy = float(np.mean(chroma[0:6])) if chroma.size else 0.0
+        minor_energy = float(np.mean(chroma[6:12])) if chroma.size else 0.0
 
-    key_bias = major_energy - minor_energy
-
-    # Combine
-    valence = (brightness / 5000.0) * 0.6 + (key_bias) * 0.4
-    return max(0.0, min(valence, 1.0))
+        key_bias = major_energy - minor_energy
+        valence = (brightness / 5000.0) * 0.6 + key_bias * 0.4
+        return max(0.0, min(valence, 1.0))
+    except Exception as exc:
+        LOGGER.warning("Unable to estimate valence: %s", exc)
+        return 0.5
 
 
 def analyze_instrumentalness(y, sr):
     """
     Approximate instrumentalness: less vocal‑like energy → more instrumental.
     """
-    # MFCCs: vocal presence often shows strong mid‑range MFCCs
-    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
-    mid_band = mfcc[4:9]  # rough vocal region
-    mid_energy = float(np.mean(np.abs(mid_band)))
+    try:
+        y, sr = _validate_audio_inputs(y, sr)
+        mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+        mid_band = mfcc[4:9]
+        mid_energy = float(np.mean(np.abs(mid_band))) if mid_band.size else 0.0
 
-    instrumentalness = 1.0 - (mid_energy / 200.0)
-    return max(0.0, min(instrumentalness, 1.0))
+        instrumentalness = 1.0 - (mid_energy / 200.0)
+        return max(0.0, min(instrumentalness, 1.0))
+    except Exception as exc:
+        LOGGER.warning("Unable to estimate instrumentalness: %s", exc)
+        return 0.5
 
 
 def analyze_liveness(y, sr):
     """
     Approximate liveness: more transient, noisy, room‑like → higher liveness.
     """
-    # Onset density
-    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
-    onset_density = float(np.mean(onset_env))
+    try:
+        y, sr = _validate_audio_inputs(y, sr)
+        onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+        onset_density = float(np.mean(onset_env)) if onset_env.size else 0.0
 
-    # High‑frequency energy
-    spec = librosa.stft(y)
-    freqs = librosa.fft_frequencies(sr=sr)
-    high_band = spec[freqs > 6000]
-    high_energy = float(np.mean(np.abs(high_band))) if high_band.size > 0 else 0.0
+        spec = librosa.stft(y)
+        freqs = librosa.fft_frequencies(sr=sr)
+        high_band = spec[freqs > 6000]
+        high_energy = float(np.mean(np.abs(high_band))) if high_band.size > 0 else 0.0
 
-    liveness = (onset_density / 5.0) * 0.6 + (high_energy / 5.0) * 0.4
-    return max(0.0, min(liveness, 1.0))
+        liveness = (onset_density / 5.0) * 0.6 + (high_energy / 5.0) * 0.4
+        return max(0.0, min(liveness, 1.0))
+    except Exception as exc:
+        LOGGER.warning("Unable to estimate liveness: %s", exc)
+        return 0.0
+
 
 # ---------------------------------------------------------
 #  Combine all JSON + CSV into unified structures
@@ -178,27 +265,32 @@ def combine_all_metadata(extracted_folders):
     for folder in extracted_folders:
         folder = Path(folder)
 
-        # JSON merge
         for file in folder.glob("*.json"):
             try:
-                with open(file) as f:
-                    data = json.load(f)
+                with file.open(encoding="utf-8") as handle:
+                    data = json.load(handle)
+                if not isinstance(data, dict):
+                    LOGGER.warning("Skipping JSON metadata in %s because the top-level value is %s", file.name, type(data).__name__)
+                    continue
                 combined_json[file.stem] = data
-            except:
-                pass
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError) as exc:
+                LOGGER.warning("Skipping unreadable JSON metadata in %s: %s", file.name, exc)
 
-        # CSV merge
         for file in folder.glob("*.csv"):
             try:
-                with open(file) as f:
-                    reader = csv.reader(f)
-                    rows = list(reader)
-                if rows:
-                    header = rows[0]
-                    for row in rows[1:]:
-                        combined_csv.append(dict(zip(header, row)))
-            except:
-                pass
+                with file.open(encoding="utf-8", newline="") as handle:
+                    reader = csv.DictReader(handle)
+                    if not reader.fieldnames:
+                        continue
+
+                    for row_number, row in enumerate(reader, start=2):
+                        cleaned_row = dict(row)
+                        if None in cleaned_row:
+                            LOGGER.warning("Ignoring extra CSV columns in %s row %s", file.name, row_number)
+                            cleaned_row.pop(None, None)
+                        combined_csv.append(cleaned_row)
+            except (OSError, UnicodeDecodeError, csv.Error, TypeError, ValueError) as exc:
+                LOGGER.warning("Skipping unreadable CSV metadata in %s: %s", file.name, exc)
 
     return combined_json, combined_csv
 
@@ -212,7 +304,19 @@ def detect_duplicates(combined_csv, key="id"):
     duplicates = []
 
     for row in combined_csv:
-        value = row.get(key)
+        if not isinstance(row, Mapping):
+            LOGGER.warning("Skipping duplicate detection for non-mapping row")
+            continue
+
+        value = _normalize_duplicate_value(row.get(key))
+        if value is None:
+            continue
+        try:
+            hash(value)
+        except TypeError:
+            LOGGER.warning("Skipping duplicate detection for unhashable %s value", key)
+            continue
+
         if value in seen:
             duplicates.append(row)
         else:
@@ -227,12 +331,13 @@ def detect_duplicates(combined_csv, key="id"):
 def analyze_energy_danceability(y, sr):
     """Infer normalized energy, danceability, acousticness, and movement."""
     try:
+        y, sr = _validate_audio_inputs(y, sr)
         rms = librosa.feature.rms(y=y)
         mean_rms = float(np.mean(rms)) if rms.size else 0.0
         energy = max(0.0, min(1.0, mean_rms / 0.1))
 
         tempos = librosa.beat.tempo(y=y, sr=sr)
-        tempo = float(tempos[0]) if tempos.size else 0.0
+        tempo = float(tempos[0]) if np.size(tempos) else 0.0
 
         onset_env = librosa.onset.onset_strength(y=y, sr=sr)
         onset_density = float(np.mean(onset_env)) if onset_env.size else 0.0
@@ -252,36 +357,36 @@ def analyze_energy_danceability(y, sr):
             "energy": energy,
             "danceability": danceability,
             "acousticness": acousticness,
-            "movement": movement
+            "movement": movement,
         }
-    except Exception:
+    except Exception as exc:
+        LOGGER.warning("Unable to estimate energy and danceability: %s", exc)
         return {
             "energy": 0.5,
             "danceability": 0.5,
             "acousticness": 0.5,
-            "movement": 0.5
+            "movement": 0.5,
         }
 
 
 def analyze_audio_features(audio_path):
+    audio_path = Path(audio_path)
+
     try:
+        if not audio_path.is_file():
+            raise FileNotFoundError("audio file does not exist")
+
         y, sr = librosa.load(audio_path, sr=None)
+        y, sr = _validate_audio_inputs(y, sr)
 
-        # BPM
         tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
-        bpm = int(tempo)
+        bpm = int(float(tempo)) if np.size(tempo) else 0
 
-        # Brightness
         centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
-        brightness = float(np.mean(centroid))
-
-        # Mood
+        brightness = float(np.mean(centroid)) if centroid.size else 0.0
         mood = infer_mood(bpm, brightness)
-
-        # Energy + danceability
         extra = analyze_energy_danceability(y, sr)
 
-        # Spotify‑style extras
         valence = analyze_valence(y, sr)
         instrumentalness = analyze_instrumentalness(y, sr)
         liveness = analyze_liveness(y, sr)
@@ -296,12 +401,12 @@ def analyze_audio_features(audio_path):
             "movement": extra["movement"],
             "valence": valence,
             "instrumentalness": instrumentalness,
-            "liveness": liveness
+            "liveness": liveness,
         }
 
-    except Exception as e:
-        return {"error": str(e)}
-
+    except Exception as exc:
+        LOGGER.warning("Unable to analyze audio features for %s: %s", audio_path.name, exc)
+        return {"error": f"Audio analysis failed for {audio_path.name}: {exc}"}
 
 
 def infer_mood(bpm, brightness):
@@ -321,6 +426,39 @@ def infer_mood(bpm, brightness):
 
 
 # ---------------------------------------------------------
+#  Export Spotify-style CSV
+# ---------------------------------------------------------
+
+def export_spotify_features_csv(spotify_export, output_path="spotify_features.csv"):
+    """Export audio features to CSV in Spotify-style format."""
+    try:
+        if not spotify_export:
+            return None
+
+        fieldnames = {"track_name"}
+        for features in spotify_export.values():
+            if isinstance(features, dict):
+                fieldnames.update(str(key) for key in features)
+
+        ordered_fieldnames = sorted(fieldnames)
+
+        with open(output_path, "w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=ordered_fieldnames)
+            writer.writeheader()
+
+            for track_name, features in spotify_export.items():
+                row = {"track_name": track_name}
+                if isinstance(features, dict):
+                    row.update({str(key): value for key, value in features.items()})
+                writer.writerow(row)
+
+        return str(Path(output_path).resolve())
+    except (OSError, ValueError, TypeError, csv.Error) as exc:
+        LOGGER.warning("Unable to export Spotify-style features CSV: %s", exc)
+        return None
+
+
+# ---------------------------------------------------------
 #  Generate a simple text report
 # ---------------------------------------------------------
 
@@ -328,23 +466,27 @@ def generate_report(extracted_folders, output="ProjectData_Report.txt"):
     combined_json, combined_csv = combine_all_metadata(extracted_folders)
     duplicates = detect_duplicates(combined_csv)
 
-    with open(output, "w") as f:
-        f.write("=== ProjectData Analysis Report ===\n\n")
-        f.write(f"Folders analyzed: {len(extracted_folders)}\n\n")
+    with open(output, "w", encoding="utf-8") as handle:
+        handle.write("=== ProjectData Analysis Report ===\n\n")
+        handle.write(f"Folders analyzed: {len(extracted_folders)}\n\n")
 
-        f.write("JSON Files Combined:\n")
+        handle.write("JSON Files Combined:\n")
         for name in combined_json:
-            f.write(f" - {name}\n")
+            handle.write(f" - {name}\n")
 
-        f.write("\nCSV Rows Combined: " + str(len(combined_csv)) + "\n")
-        f.write("Duplicate Entries: " + str(len(duplicates)) + "\n")
+        handle.write("\nCSV Rows Combined: " + str(len(combined_csv)) + "\n")
+        handle.write("Duplicate Entries: " + str(len(duplicates)) + "\n")
 
-        f.write("\nSync Licensing Tags:\n")
+        handle.write("\nSync Licensing Tags:\n")
         for name, data in combined_json.items():
             tags = generate_sync_tags(data)
-            f.write(f" - {name}: {', '.join(tags)}\n")
+            handle.write(f" - {name}: {', '.join(tags)}\n")
+
+
 def export_songtradr_metadata(track_name, metadata, audio_features=None):
     """Return Songtradr-ready metadata dict."""
+    metadata = _coerce_mapping(metadata)
+    audio_features = _coerce_mapping(audio_features)
     tags = generate_sync_tags(metadata, audio_features)
 
     return {
@@ -360,10 +502,14 @@ def export_songtradr_metadata(track_name, metadata, audio_features=None):
         "rights": metadata.get("usage_rights", "100% owned"),
         "composer": metadata.get("composer", ""),
         "publisher": metadata.get("publisher", ""),
-        "pro": metadata.get("pro_affiliation", "")
+        "pro": metadata.get("pro_affiliation", ""),
     }
+
+
 def export_audiosparx_metadata(track_name, metadata, audio_features=None):
     """Return AudioSparx-ready metadata dict."""
+    metadata = _coerce_mapping(metadata)
+    audio_features = _coerce_mapping(audio_features)
     tags = generate_sync_tags(metadata, audio_features)
 
     return {
@@ -379,10 +525,14 @@ def export_audiosparx_metadata(track_name, metadata, audio_features=None):
         "Publisher": metadata.get("publisher", ""),
         "PRO": metadata.get("pro_affiliation", ""),
         "StemsAvailable": metadata.get("stems_available", True),
-        "VersionsAvailable": metadata.get("versions_available", [])
+        "VersionsAvailable": metadata.get("versions_available", []),
     }
+
+
 def export_ringo_metadata(track_name, metadata, audio_features=None):
     """Return Ringo-ready metadata dict."""
+    metadata = _coerce_mapping(metadata)
+    audio_features = _coerce_mapping(audio_features)
     tags = generate_sync_tags(metadata, audio_features)
 
     return {
@@ -396,5 +546,5 @@ def export_ringo_metadata(track_name, metadata, audio_features=None):
         "recommended_scenes": metadata.get("recommended_scenes", []),
         "rights": metadata.get("usage_rights", "100% owned"),
         "composer": metadata.get("composer", ""),
-        "publisher": metadata.get("publisher", "")
+        "publisher": metadata.get("publisher", ""),
     }

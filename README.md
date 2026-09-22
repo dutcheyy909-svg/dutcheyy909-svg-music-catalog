@@ -1,20 +1,23 @@
 # dutcheyy909-svg-music-catalog
 
 ## Overview
-A structured music catalog repository for track metadata, release and sync cue schemas, and lightweight automation around generated repository artifacts.
+A structured music catalog repository for track metadata, release and sync cue schemas, generated catalog artifacts, and lightweight automation for keeping those derived files current on Python 3.11.
 
 ## Repository Layout
-- `music-catalog/projects/` contains project metadata schemas, fixtures, and dashboard tooling.
-- `turbo-adventure/metadata/` stores track metadata plus derived JSON outputs used by the helper scripts.
+- `music-catalog/projects/` contains source project metadata schemas, fixtures, and dashboard tooling.
+- `turbo-adventure/metadata/` stores source track metadata; helper scripts may also emit derived metadata files alongside it.
 - `releases/` and `sync_cues/` provide example payloads and JSON schemas for release and sync licensing data.
 - `automation/` contains the README template, structured README data, and the generator script.
-- `scripts/` and `tests/` contain repository automation and regression coverage.
+- `scripts/`, `projectdata_analyzer.py`, and `tests/` contain repository automation plus regression coverage.
+- Generated files such as `README.md` and `catalog.json` should be refreshed from their scripts instead of edited by hand.
 
 ## Automation
-- Generate the repository README from the repository root with `python automation/scripts/generate-readme.py`.
+- Install repository dependencies from the repository root with `python -m pip install -r requirements.txt`.
+- Generate the repository README with `python automation/scripts/generate-readme.py`.
 - Refresh the audio catalog with `python scripts/catalog_generator.py`.
 - Rebuild Turbo Adventure derived metadata with `python turbo-adventure/logic_tools/extract_metadata.py` and `python turbo-adventure/logic_tools/sync_metadata_builder.py`.
 
 ## Validation
+- Run the supported test suite with `python -m pytest -q`.
 - Run focused README regression checks with `pytest -q tests/test_generate_readme.py tests/test_auto_update_readme_workflow.py`.
-- GitHub Actions also validates Python syntax, JSON schemas, and generated artifacts such as `README.md` and `catalog.json`.
+- GitHub Actions installs `requirements.txt` on Python 3.11 and validates Python syntax, JSON schemas, and generated artifacts such as `README.md` and `catalog.json`.
