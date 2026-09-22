@@ -167,6 +167,35 @@ def analyze_liveness(y, sr):
     liveness = (onset_density / 5.0) * 0.6 + (high_energy / 5.0) * 0.4
     return max(0.0, min(liveness, 1.0))
 
+
+def analyze_energy_danceability(y, sr):
+    """
+    Approximate energy, danceability, acousticness, and movement from the signal.
+    """
+    rms = librosa.feature.rms(y=y)
+    energy = float(np.mean(rms)) * 10.0
+
+    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+    tempo, _ = librosa.beat.beat_track(onset_envelope=onset_env, sr=sr)
+    danceability = (float(np.mean(onset_env)) / 5.0) * 0.5 + (float(tempo) / 200.0) * 0.5
+
+    spec = np.abs(librosa.stft(y))
+    freqs = librosa.fft_frequencies(sr=sr)
+    high_band = spec[freqs > 4000]
+    low_band = spec[freqs <= 4000]
+    high_energy = float(np.mean(high_band)) if high_band.size > 0 else 0.0
+    low_energy = float(np.mean(low_band)) if low_band.size > 0 else 0.0
+    acousticness = 1.0 - (high_energy / (low_energy + high_energy + 1e-9))
+
+    movement = (energy + danceability) / 2.0
+
+    return {
+        "energy": max(0.0, min(energy, 1.0)),
+        "danceability": max(0.0, min(danceability, 1.0)),
+        "acousticness": max(0.0, min(acousticness, 1.0)),
+        "movement": max(0.0, min(movement, 1.0))
+    }
+
 # ---------------------------------------------------------
 #  Combine all JSON + CSV into unified structures
 # ---------------------------------------------------------
@@ -375,8 +404,4 @@ def export_ringo_metadata(track_name, metadata, audio_features=None):
         "rights": metadata.get("usage_rights", "100% owned"),
         "composer": metadata.get("composer", ""),
         "publisher": metadata.get("publisher", "")
-    }
-
-
-
     }
