@@ -52,15 +52,21 @@ def parse_metadata_timestamp(metadata: dict[str, Any]) -> datetime:
     return datetime.min.replace(tzinfo=timezone.utc)
 
 
+def latest_track_sort_key(track: tuple[Path, dict[str, Any]]) -> tuple[datetime, str, str]:
+    metadata = track[1]
+    return (
+        parse_metadata_timestamp(metadata),
+        str(metadata.get("title", "")),
+        str(metadata.get("composer", "")),
+    )
+
+
 def build_latest_metadata(metadata_dir: Path = METADATA_DIR) -> dict[str, Any]:
     tracks = load_track_metadata(metadata_dir)
     if not tracks:
         raise ValueError(f"No valid track metadata files found in {metadata_dir}")
 
-    latest_file, latest_metadata = max(
-        tracks,
-        key=lambda item: (parse_metadata_timestamp(item[1]), item[0].name),
-    )
+    latest_file, latest_metadata = max(tracks, key=latest_track_sort_key)
 
     result = dict(latest_metadata)
     result["metadata_file"] = latest_file.name
