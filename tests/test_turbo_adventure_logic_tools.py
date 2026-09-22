@@ -88,6 +88,44 @@ def test_load_track_metadata_ignores_non_track_json_objects(metadata_dir):
     assert [metadata_file.name for metadata_file, _ in tracks] == ["track_a.json", "track_b.json"]
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {
+            "title": "Broken File Path",
+            "composer": "Duncan",
+            "bpm": 120,
+            "key": "A Minor",
+            "genre": "Pop",
+            "file_path": None,
+        },
+        {
+            "title": "Broken Files Type",
+            "composer": "Duncan",
+            "bpm": 120,
+            "key": "A Minor",
+            "genre": "Pop",
+            "files": [],
+        },
+        {
+            "title": "Broken Files Shape",
+            "composer": "Duncan",
+            "bpm": 120,
+            "key": "A Minor",
+            "genre": "Pop",
+            "files": {
+                "wav": "tracks/broken.wav",
+                "mp3": "",
+            },
+        },
+    ],
+)
+def test_load_track_metadata_rejects_invalid_source_fields(tmp_path, payload):
+    (tmp_path / "invalid.json").write_text(json.dumps(payload), encoding="utf-8")
+
+    assert extract_metadata.load_track_metadata(tmp_path) == []
+
+
 
 def test_build_latest_metadata_uses_metadata_tiebreaker_instead_of_filename(tmp_path):
     for name, payload in {
