@@ -20,12 +20,16 @@ def build_catalog(repo_root: Path, output_path: Path | None = None) -> list[dict
     entries_by_path = {}
     active_output_path = output_path or OUTPUT_PATH
     skip_dir_names = {directory.lower() for directory in SKIP_DIR_NAMES}
+    sort_key = lambda value: (value.lower(), value)
 
     for root, dirs, files in os.walk(repo_root):
-        dirs[:] = sorted(directory for directory in dirs if directory.lower() not in skip_dir_names)
+        dirs[:] = sorted(
+            (directory for directory in dirs if directory.lower() not in skip_dir_names),
+            key=sort_key,
+        )
         root_path = Path(root)
 
-        for filename in sorted(files):
+        for filename in sorted(files, key=sort_key):
             file_path = root_path / filename
             if file_path == active_output_path:
                 continue
@@ -39,7 +43,7 @@ def build_catalog(repo_root: Path, output_path: Path | None = None) -> list[dict
                 "path": relative_path,
             }
 
-    return [entries_by_path[path] for path in sorted(entries_by_path)]
+    return [entries_by_path[path] for path in sorted(entries_by_path, key=sort_key)]
 
 
 def write_catalog(catalog: list[dict[str, str]], output_path: Path) -> None:
