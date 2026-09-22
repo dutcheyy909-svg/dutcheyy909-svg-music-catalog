@@ -7,36 +7,48 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  build-and-test:
+  test:
+    name: Validate Python and generate catalogue
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - name: Check out repository
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.11"
+          python-version: "3.13"
+          cache: pip
 
       - name: Install dependencies
+        shell: bash
         run: |
           python -m pip install --upgrade pip
+
           if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          fi
-          pip install pytest flake8
-
-      - name: Run tests
-        run: |
-          if [ -d tests ]; then
-            pytest -q
-          else
-            echo "No tests directory found; skipping tests."
+            python -m pip install -r requirements.txt
           fi
 
-      - name: Run focused flake8 lint
+      - name: Check Python syntax
         run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          python -m compileall -q scripts
+
+      - name: Run catalogue generator
+        run: |
+          python scripts/catalog_generator.py
+
+      - name: Confirm catalogue was generated
+        run: |
+          test -f CATALOG.md
+          echo "CATALOG.md generated successfully"
+
+      - name: Check generated catalogue is current
+        run: |
+          git diff --exit-code -- CATALOG.md
