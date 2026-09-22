@@ -111,7 +111,7 @@ jobs:
             workflow = self._get_workflow(temp_workflow_path)
 
         self.assertIn("on", workflow)
-        self.assertNotIn(True, workflow)
+        self.assertTrue(all(isinstance(key, str) for key in workflow))
         self.assertEqual(workflow["on"]["push"]["branches"], ["main"])
 
     def test_workflow_triggers_on_push_to_main(self):
