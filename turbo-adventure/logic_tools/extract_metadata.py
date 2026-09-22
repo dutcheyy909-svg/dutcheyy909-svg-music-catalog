@@ -31,9 +31,8 @@ def has_valid_files(metadata: dict[str, Any]) -> bool:
     if not isinstance(mp3, str) or not mp3.strip():
         return False
 
-    stems_folder = files.get("stems_folder")
-    if stems_folder is not None and (
-        not isinstance(stems_folder, str) or not stems_folder.strip()
+    if "stems_folder" in files and (
+        not isinstance(files["stems_folder"], str) or not files["stems_folder"].strip()
     ):
         return False
 
