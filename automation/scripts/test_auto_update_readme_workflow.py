@@ -1,26 +1,27 @@
 import unittest
 from pathlib import Path
 
-import yaml
-
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "auto-update-readme.yml"
-
-
-class WorkflowLoader(yaml.SafeLoader):
-    pass
-
-
-WorkflowLoader.yaml_implicit_resolvers = {
-    key: [resolver for resolver in value if resolver[0] != "tag:yaml.org,2002:bool"]
-    for key, value in yaml.SafeLoader.yaml_implicit_resolvers.items()
-}
 
 
 class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
     def _get_workflow(self):
         self.assertTrue(WORKFLOW_PATH.is_file())
+
+        try:
+            import yaml
+        except ImportError as exc:
+            self.skipTest(f"PyYAML is required for workflow parsing: {exc}")
+
+        class WorkflowLoader(yaml.SafeLoader):
+            pass
+
+        WorkflowLoader.yaml_implicit_resolvers = {
+            key: [resolver for resolver in value if resolver[0] != "tag:yaml.org,2002:bool"]
+            for key, value in yaml.SafeLoader.yaml_implicit_resolvers.items()
+        }
+
         workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
         return yaml.load(workflow_text, Loader=WorkflowLoader)
 
