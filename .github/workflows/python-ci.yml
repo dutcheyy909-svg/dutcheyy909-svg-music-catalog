@@ -44,7 +44,7 @@ jobs:
 
       - name: Check Python syntax
         run: |
-          python -m compileall -q automation/scripts scripts tests turbo-adventure/logic_tools
+          python -m compileall -q automation/scripts scripts tests turbo-adventure
 
       - name: Run tests
         run: |
