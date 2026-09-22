@@ -1,4 +1,5 @@
 import importlib
+import os
 import re
 import sys
 import tempfile
@@ -87,6 +88,38 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
         for name in ("csv", "defaultdict", "json", "librosa", "LOGGER", "np", "Path"):
             self.assertIs(getattr(extractor, name), getattr(analyzer, name))
         self.assertIs(extractor.export_spotify_csv, analyzer.export_spotify_features_csv)
+
+    def test_extractor_can_import_after_repo_root_is_added_to_sys_path(self):
+        original_cwd = Path.cwd()
+        original_sys_path = sys.path[:]
+        original_modules = {
+            name: sys.modules.pop(name, None) for name in ("projectdata_analyzer", "projectdata_extractor")
+        }
+
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                os.chdir(temp_dir)
+                sys.path = [
+                    entry
+                    for entry in original_sys_path
+                    if Path(entry or temp_dir).resolve() != REPO_ROOT
+                ]
+
+                with self.assertRaises(ModuleNotFoundError):
+                    importlib.import_module("projectdata_extractor")
+
+                sys.path.insert(0, str(REPO_ROOT))
+                reimported = importlib.import_module("projectdata_extractor")
+
+                self.assertIs(reimported.export_spotify_csv, reimported.export_spotify_features_csv)
+        finally:
+            os.chdir(original_cwd)
+            sys.path = original_sys_path
+            for name in ("projectdata_analyzer", "projectdata_extractor"):
+                sys.modules.pop(name, None)
+            for name, module in original_modules.items():
+                if module is not None:
+                    sys.modules[name] = module
 
     def test_generate_sync_tags_handles_non_string_metadata_values(self):
         tags = analyzer.generate_sync_tags(
