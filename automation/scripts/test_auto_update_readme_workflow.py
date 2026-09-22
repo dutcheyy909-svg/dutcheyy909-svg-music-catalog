@@ -32,6 +32,11 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
     def _get_push_config(self):
         workflow_on = self._get_workflow().get("on")
         self.assertIsNotNone(workflow_on, 'Workflow must define an "on" section')
+
+        if isinstance(workflow_on, list):
+            self.assertIn("push", workflow_on, 'Workflow "on" sequence must include "push"')
+            self.fail('Workflow "on" must be a mapping so push branches can be restricted to "main"')
+
         self.assertIsInstance(workflow_on, dict, 'Workflow "on" section must be a mapping')
         self.assertIn("push", workflow_on, 'Workflow "on" section must define a push trigger')
 
