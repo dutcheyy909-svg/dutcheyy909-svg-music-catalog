@@ -28,11 +28,11 @@ jobs:
 
       - name: Generate README
         run: |
-          if [ -f automation/scripts/generate-readme.py ]; then
-            python automation/scripts/generate-readme.py
-          else
-            echo "README generator not found; skipping README update."
+          if [ ! -f automation/scripts/generate-readme.py ]; then
+            echo "README generator not found at automation/scripts/generate-readme.py."
+            exit 1
           fi
+          python automation/scripts/generate-readme.py
 
       - name: Commit updated README
         run: |
