@@ -1,7 +1,7 @@
 {
   "project_name": "dutcheyy909-svg-music-catalog",
-  "overview": "A structured music catalog repository for managing Dutcheyy Studio music assets and metadata.",
-  "latest_updates": "- Added automated README generation from template",
-  "skills": "- Python\n- Automation\n- Metadata processing",
-  "projects": "- Music catalog metadata management\n- Release and sync cue documentation"
+  "overview": "A structured music catalog repository for track metadata, release and sync cue schemas, and lightweight automation around generated repository artifacts.",
+  "repository_layout": "- `music-catalog/projects/` contains project metadata schemas, fixtures, and dashboard tooling.\n- `turbo-adventure/metadata/` stores track metadata plus derived JSON outputs used by the helper scripts.\n- `releases/` and `sync_cues/` provide example payloads and JSON schemas for release and sync licensing data.\n- `automation/` contains the README template, structured README data, and the generator script.\n- `scripts/` and `tests/` contain repository automation and regression coverage.",
+  "automation": "- Generate the repository README from the repository root with `python automation/scripts/generate-readme.py`.\n- Refresh the audio catalog with `python scripts/catalog_generator.py`.\n- Rebuild Turbo Adventure derived metadata with `python turbo-adventure/logic_tools/extract_metadata.py` and `python turbo-adventure/logic_tools/sync_metadata_builder.py`.",
+  "validation": "- Run focused README regression checks with `pytest -q tests/test_generate_readme.py tests/test_auto_update_readme_workflow.py`.\n- GitHub Actions also validates Python syntax, JSON schemas, and generated artifacts such as `README.md` and `catalog.json`."
 }
