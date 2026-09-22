@@ -1,3 +1,4 @@
+import re
 import unittest
 from pathlib import Path
 
@@ -24,7 +25,12 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
 
         workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
         workflow = yaml.load(workflow_text, Loader=WorkflowLoader)
-        if isinstance(workflow, dict) and "on" not in workflow and True in workflow:
+        if (
+            isinstance(workflow, dict)
+            and "on" not in workflow
+            and True in workflow
+            and re.search(r"(?m)^on:\s*(?:$|#)", workflow_text)
+        ):
             workflow = dict(workflow)
             workflow["on"] = workflow[True]
         return workflow
