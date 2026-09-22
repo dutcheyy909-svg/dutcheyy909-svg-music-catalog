@@ -1,16 +1,20 @@
-# dutcheyy909-svg-music-catalog
-
-## Overview
-A structured music catalog repository for managing Dutcheyy Studio music assets and metadata.
-
-## Latest Updates
-- Added automated README generation from template
-
-## Skills
-- Python
-- Automation
-- Metadata processing
-
-## Projects
-- Music catalog metadata management
-- Release and sync cue documentation
+{
+  "project_id": "test-track",
+  "title": "Redline City",
+  "project_type": "song",
+  "status": "production",
+  "genre": [
+    "Electronic",
+    "Cyberpunk EDM",
+    "Electro House",
+    "Synthwave Hybrid"
+  ],
+  "mood": [
+    "Energetic",
+    "Aggressive",
+    "Powerful",
+    "Futuristic"
+  ],
+  "created_at": "2026-09-22T00:00:00Z",
+  "notes": "Project entry used for validating project schema in CI."
+}
