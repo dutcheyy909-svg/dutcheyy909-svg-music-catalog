@@ -88,6 +88,63 @@ def test_load_track_metadata_ignores_non_track_json_objects(metadata_dir):
     assert [metadata_file.name for metadata_file, _ in tracks] == ["track_a.json", "track_b.json"]
 
 
+def test_load_track_metadata_rejects_invalid_present_source_fields(tmp_path):
+    for name, payload in {
+        "valid.json": {
+            "title": "Valid Track",
+            "composer": "Duncan",
+            "bpm": 128,
+            "key": "E Minor",
+            "genre": "Electronic",
+            "file_path": "tracks/valid.wav",
+        },
+        "invalid_files_shape.json": {
+            "title": "Invalid Files Shape",
+            "composer": "Duncan",
+            "bpm": 129,
+            "key": "F Minor",
+            "genre": "Electronic",
+            "file_path": "tracks/invalid-files.wav",
+            "files": [],
+        },
+        "invalid_file_path_type.json": {
+            "title": "Invalid File Path Type",
+            "composer": "Duncan",
+            "bpm": 130,
+            "key": "G Minor",
+            "genre": "Electronic",
+            "file_path": None,
+            "files": {
+                "wav": "tracks/invalid-path.wav",
+                "mp3": "tracks/invalid-path.mp3",
+            },
+        },
+    }.items():
+        (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
+
+    tracks = extract_metadata.load_track_metadata(tmp_path)
+
+    assert [metadata_file.name for metadata_file, _ in tracks] == ["valid.json"]
+
+
+def test_load_track_metadata_rejects_invalid_required_field_types(tmp_path):
+    (tmp_path / "invalid_bpm.json").write_text(
+        json.dumps(
+            {
+                "title": "Invalid BPM",
+                "composer": "Duncan",
+                "bpm": True,
+                "key": "A Minor",
+                "genre": "Electronic",
+                "file_path": "tracks/invalid-bpm.wav",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert extract_metadata.load_track_metadata(tmp_path) == []
+
+
 
 def test_build_latest_metadata_uses_metadata_tiebreaker_instead_of_filename(tmp_path):
     for name, payload in {
