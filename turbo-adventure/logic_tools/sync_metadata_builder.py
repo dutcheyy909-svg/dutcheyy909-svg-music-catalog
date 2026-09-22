@@ -4,7 +4,14 @@ import json
 from pathlib import Path
 from typing import Any
 
-from extract_metadata import METADATA_DIR, load_track_metadata
+if __package__ in {None, ""}:
+    from pathlib import Path as _Path
+    import sys as _sys
+
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent))
+    from logic_tools.extract_metadata import METADATA_DIR, load_track_metadata
+else:
+    from .extract_metadata import METADATA_DIR, load_track_metadata
 
 SYNC_METADATA_PATH = METADATA_DIR / "sync_metadata.json"
 SUMMARY_FIELDS = ("title", "composer", "bpm", "key", "genre", "subgenre")

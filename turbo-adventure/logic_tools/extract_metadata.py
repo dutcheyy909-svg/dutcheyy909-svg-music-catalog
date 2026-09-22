@@ -9,7 +9,16 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 METADATA_DIR = ROOT_DIR / "metadata"
 LATEST_METADATA_PATH = METADATA_DIR / "latest_metadata.json"
 TRACK_FILES_TO_SKIP = {"latest_metadata.json", "sync_metadata.json", "track.schema.json"}
+TRACK_REQUIRED_FIELDS = {"title", "composer", "bpm", "key", "genre"}
 TIMESTAMP_KEYS = ("updated_at", "updated", "created_at", "created")
+
+
+def is_track_metadata(metadata: Any) -> bool:
+    if not isinstance(metadata, dict):
+        return False
+    if not TRACK_REQUIRED_FIELDS.issubset(metadata):
+        return False
+    return "file_path" in metadata or "files" in metadata
 
 
 def load_track_metadata(metadata_dir: Path = METADATA_DIR) -> list[tuple[Path, dict[str, Any]]]:
@@ -19,7 +28,7 @@ def load_track_metadata(metadata_dir: Path = METADATA_DIR) -> list[tuple[Path, d
             continue
 
         metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
-        if isinstance(metadata, dict):
+        if is_track_metadata(metadata):
             tracks.append((metadata_file, metadata))
 
     return tracks
@@ -46,7 +55,7 @@ def parse_metadata_timestamp(metadata: dict[str, Any]) -> datetime:
 def build_latest_metadata(metadata_dir: Path = METADATA_DIR) -> dict[str, Any]:
     tracks = load_track_metadata(metadata_dir)
     if not tracks:
-        raise ValueError(f"No track metadata found in {metadata_dir}")
+        raise ValueError(f"No valid track metadata files found in {metadata_dir}")
 
     latest_file, latest_metadata = max(
         tracks,
