@@ -224,6 +224,45 @@ def detect_duplicates(combined_csv, key="id"):
 # ---------------------------------------------------------
 #  Audio Analysis (BPM, brightness, mood)
 # ---------------------------------------------------------
+def analyze_energy_danceability(y, sr):
+    """Infer normalized energy, danceability, acousticness, and movement."""
+    try:
+        rms = librosa.feature.rms(y=y)
+        mean_rms = float(np.mean(rms)) if rms.size else 0.0
+        energy = max(0.0, min(1.0, mean_rms / 0.1))
+
+        tempos = librosa.beat.tempo(y=y, sr=sr)
+        tempo = float(tempos[0]) if tempos.size else 0.0
+
+        onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+        onset_density = float(np.mean(onset_env)) if onset_env.size else 0.0
+        tempo_norm = min(1.0, tempo / 150.0)
+        onset_norm = min(1.0, onset_density / 5.0)
+        danceability = max(0.0, min(1.0, tempo_norm * 0.6 + onset_norm * 0.4))
+
+        rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)
+        rolloff_mean = float(np.mean(rolloff)) if rolloff.size else 0.0
+        acousticness = 1.0 - min(1.0, rolloff_mean / (sr / 2.0))
+
+        spec_bw = librosa.feature.spectral_bandwidth(y=y, sr=sr)
+        movement = float(np.mean(spec_bw)) if spec_bw.size else 0.0
+        movement = max(0.0, min(1.0, movement / 5000.0))
+
+        return {
+            "energy": energy,
+            "danceability": danceability,
+            "acousticness": acousticness,
+            "movement": movement
+        }
+    except Exception:
+        return {
+            "energy": 0.5,
+            "danceability": 0.5,
+            "acousticness": 0.5,
+            "movement": 0.5
+        }
+
+
 def analyze_audio_features(audio_path):
     try:
         y, sr = librosa.load(audio_path, sr=None)
@@ -358,25 +397,4 @@ def export_ringo_metadata(track_name, metadata, audio_features=None):
         "rights": metadata.get("usage_rights", "100% owned"),
         "composer": metadata.get("composer", ""),
         "publisher": metadata.get("publisher", "")
-    }
-def export_ringo_metadata(track_name, metadata, audio_features=None):
-    """Return Ringo-ready metadata dict."""
-    tags = generate_sync_tags(metadata, audio_features)
-
-    return {
-        "name": metadata.get("title", track_name),
-        "bpm": audio_features.get("bpm") if audio_features else metadata.get("bpm"),
-        "key": metadata.get("key", ""),
-        "energy": metadata.get("energy_level", ""),
-        "mood": audio_features.get("mood") if audio_features else metadata.get("mood", ""),
-        "genre": metadata.get("genre", ""),
-        "tags": tags,
-        "recommended_scenes": metadata.get("recommended_scenes", []),
-        "rights": metadata.get("usage_rights", "100% owned"),
-        "composer": metadata.get("composer", ""),
-        "publisher": metadata.get("publisher", "")
-    }
-
-
-
     }

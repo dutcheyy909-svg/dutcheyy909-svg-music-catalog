@@ -1,0 +1,58 @@
+{
+  "type": "sync_cue",
+  "title": "Back on the Mend Again",
+  "alt_title": "Back on the Mend",
+  "url": "https://github.com/dutcheyy909-svg/dutcheyy909-svg-music-catalog/issues/12",
+  "project": "Back on the Mend",
+  "composer": "Duncan",
+  "ipi": "01071694550",
+  "bmi": "01071694550",
+  "work_registration": "82060188",
+  "publisher": "DUTCHEYY RECORDS",
+  "master_owner": "DUTCHEYY RECORDS",
+  "pro_affiliation": "",
+  "contact": "07304453090",
+  "bpm": 170,
+  "key": "A Minor",
+  "genre": ["Trap", "Rap", "Singer-Songwriter"],
+  "subgenre": ["Melodic Trap", "Conscious Rap", "Alternative Hip-Hop"],
+  "mood_tags": ["Hopeful", "Uplifting", "Reflective", "Determined", "Emotional", "Empowering"],
+  "themes": ["Recovery", "Healing", "Resilience", "Personal Growth", "Second Chances", "Overcoming Struggles", "New Beginnings", "Self-Belief"],
+  "energy_level": 7,
+  "vocals": ["Male Vocal", "Rap Vocal", "Melodic Vocal"],
+  "instrumentation": [
+    "Lead Vocal",
+    "Harmony Vocal",
+    "Synth Pads",
+    "Bass",
+    "Drums",
+    "FX"
+  ],
+  "keywords": "healing, recovery, comeback, resilience, hope, strength, perseverance, determination, growth, redemption, motivation, emotional rap, melodic trap, overcoming adversity, self-improvement, uplifting, inspirational, heartfelt, empowering, modern hip-hop",
+  "description": "An emotional and uplifting melodic trap track blending singer-songwriter storytelling with contemporary rap influences. Atmospheric production, melodic vocals and punchy trap drums drive a narrative of healing, perseverance and finding strength through adversity.",
+  "edit_points": [
+    "0:00 Intro",
+    "0:18 Verse",
+    "0:42 Chorus",
+    "1:10 Verse 2 FT BAM"
+  ],
+  "stems_available": true,
+  "versions_available": ["Instrumental", "30s", "60s", "Sting"],
+  "cutdowns": ["Full Mix", "Instrumental", "A Cappella", "60s", "30s", "15s", "Sting"],
+  "usage_rights": "100% original, no samples",
+  "explicit_content": false,
+  "format": "WAV 24-bit / 48kHz",
+  "recommended_scenes": [
+    "montage",
+    "emotional recovery",
+    "sports uplift"
+  ],
+  "similar_tracks": [
+    "Lauv - I Like Me Better",
+    "The 1975 - Somebody Else"
+  ],
+  "loudness_lufs": "-10.5",
+  "peak_db": "-0.3",
+  "file_path": "cues/back_on_the_mend/back_on_the_mend.wav",
+  "created_at": "2026-09-01"
+}
