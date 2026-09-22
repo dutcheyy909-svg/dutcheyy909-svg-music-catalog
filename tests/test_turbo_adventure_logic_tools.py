@@ -70,6 +70,18 @@ def test_parse_metadata_timestamp_supports_supported_keys_and_z_suffix():
     assert fallback.isoformat() == "2026-09-20T00:00:00+00:00"
 
 
+
+def test_parse_metadata_timestamp_uses_newest_supported_timestamp():
+    parsed = extract_metadata.parse_metadata_timestamp(
+        {
+            "updated_at": "2026-09-20T10:15:00Z",
+            "created_at": "2026-09-21T09:00:00Z",
+        }
+    )
+
+    assert parsed.isoformat() == "2026-09-21T09:00:00+00:00"
+
+
 def test_load_track_metadata_ignores_non_track_json_objects(metadata_dir):
     tracks = extract_metadata.load_track_metadata(metadata_dir)
 

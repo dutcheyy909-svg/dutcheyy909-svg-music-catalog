@@ -35,6 +35,8 @@ def load_track_metadata(metadata_dir: Path = METADATA_DIR) -> list[tuple[Path, d
 
 
 def parse_metadata_timestamp(metadata: dict[str, Any]) -> datetime:
+    timestamps: list[datetime] = []
+
     for key in TIMESTAMP_KEYS:
         value = metadata.get(key)
         if not value:
@@ -43,11 +45,15 @@ def parse_metadata_timestamp(metadata: dict[str, Any]) -> datetime:
         normalized = str(value).replace("Z", "+00:00")
         try:
             parsed = datetime.fromisoformat(normalized)
-            if parsed.tzinfo is None:
-                parsed = parsed.replace(tzinfo=timezone.utc)
-            return parsed
         except ValueError:
             continue
+
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        timestamps.append(parsed)
+
+    if timestamps:
+        return max(timestamps)
 
     return datetime.min.replace(tzinfo=timezone.utc)
 
