@@ -1,33 +1,63 @@
 import json
+import os
 from pathlib import Path
 
-tracks = []
+REPO_ROOT = Path(__file__).resolve().parents[1]
+OUTPUT_PATH = REPO_ROOT / "catalog.json"
+AUDIO_EXTENSIONS = {".mp3", ".wav"}
+SKIP_DIR_NAMES = {
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    "generated",
+    "node_modules",
+    "output",
+}
 
-for file in Path(".").rglob("*.json"):
-    try:
-        with open(file, "r") as f:
-            data = json.load(f)
-            tracks.append(data)
-    except Exception:
-        pass
 
-with open("CATALOG.md", "w") as f:
-    f.write("# DUTCHEYY Music Catalog\n\n")
+def build_catalog(repo_root: Path, output_path: Path | None = None) -> list[dict[str, str]]:
+    resolved_repo_root = repo_root.resolve()
+    entries_by_path = {}
+    active_output_path = ((resolved_repo_root / "catalog.json") if output_path is None else output_path).resolve()
+    skip_dir_names = {directory.lower() for directory in SKIP_DIR_NAMES}
+    sort_key = lambda value: (value.lower(), value)
 
-    for track in tracks:
-        f.write(f"## {track.get('title', 'Unknown')}\n")
-        f.write(f"Artist: {track.get('artist', 'Unknown')}\n")
-        f.write(f"Album: {track.get('album', 'Unknown')}\n")
-        f.write(f"Genre: {track.get('genre', 'Unknown')}\n")
-        f.write(f"Subgenre: {track.get('subgenre', 'Unknown')}\n")
-        f.write(f"BPM: {track.get('bpm', 'Unknown')}\n")
-        f.write(f"Key: {track.get('key', 'Unknown')}\n")
-        f.write(f"Mood: {track.get('mood', 'Unknown')}\n")
-        f.write(f"Duration: {track.get('duration', 'Unknown')}\n")
-        f.write(f"Vocals: {track.get('vocals', 'Unknown')}\n")
-        f.write(f"Release Date: {track.get('release_date', 'Unknown')}\n")
+    for root, dirs, files in os.walk(resolved_repo_root):
+        dirs[:] = sorted(
+            (directory for directory in dirs if directory.lower() not in skip_dir_names),
+            key=sort_key,
+        )
+        root_path = Path(root)
 
-        keywords = ", ".join(track.get("keywords", []))
-        f.write(f"Keywords: {keywords}\n\n")
+        for filename in sorted(files, key=sort_key):
+            file_path = (root_path / filename).resolve()
+            if file_path == active_output_path:
+                continue
 
-print(f"Processed {len(tracks)} tracks")
+            if file_path.suffix.lower() not in AUDIO_EXTENSIONS:
+                continue
+
+            relative_path = file_path.relative_to(resolved_repo_root).as_posix()
+            entries_by_path[relative_path] = {
+                "filename": filename,
+                "path": relative_path,
+            }
+
+    return [entries_by_path[path] for path in sorted(entries_by_path, key=sort_key)]
+
+
+def write_catalog(catalog: list[dict[str, str]], output_path: Path) -> None:
+    with output_path.open("w", encoding="utf-8") as file_handle:
+        json.dump(catalog, file_handle, indent=2)
+        file_handle.write("\n")
+
+
+def main() -> None:
+    catalog = build_catalog(REPO_ROOT, OUTPUT_PATH)
+    write_catalog(catalog, OUTPUT_PATH)
+    print(f"Found {len(catalog)} audio files")
+
+
+if __name__ == "__main__":
+    main()

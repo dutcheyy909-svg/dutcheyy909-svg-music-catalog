@@ -36,11 +36,15 @@ jobs:
             python -m pip install -r requirements.txt
           fi
 
+          if [ -f automation/scripts/requirements.txt ]; then
+            python -m pip install -r automation/scripts/requirements.txt
+          fi
+
           python -m pip install pytest flake8
 
       - name: Check Python syntax
         run: |
-          python -m compileall -q scripts
+          python -m compileall -q automation/scripts scripts tests turbo-adventure/logic_tools
 
       - name: Run tests
         run: |
@@ -60,9 +64,9 @@ jobs:
 
       - name: Confirm catalogue was generated
         run: |
-          test -f CATALOG.md
-          echo "CATALOG.md generated successfully"
+          test -f catalog.json
+          echo "catalog.json generated successfully"
 
       - name: Check generated catalogue is current
         run: |
-          git diff --exit-code -- CATALOG.md
+          git diff --exit-code -- catalog.json

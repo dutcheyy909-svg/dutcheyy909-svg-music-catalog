@@ -1,1 +1,60 @@
-{}
+{
+  "project": "turbo-adventure",
+  "track_count": 3,
+  "tracks": [
+    {
+      "title": "Electric Bloom",
+      "composer": "Duncan",
+      "bpm": 126,
+      "key": "G Major",
+      "genre": "Pop",
+      "subgenre": "Electro-Pop / Indie Pop",
+      "metadata_file": "electric_bloom.json",
+      "mood": [
+        "uplifting",
+        "sparkly",
+        "energetic",
+        "youthful",
+        "feel-good"
+      ],
+      "file_path": "cues/electric_bloom/electric_bloom.wav"
+    },
+    {
+      "title": "Last Laugh (Upbeat Mix)",
+      "composer": "Duncan",
+      "bpm": 124,
+      "key": "C minor",
+      "genre": "Pop",
+      "subgenre": "Upbeat Electro-Pop",
+      "metadata_file": "llast_laugh_instrumental.json",
+      "mood": [
+        "playful",
+        "cheeky",
+        "energetic",
+        "confident",
+        "uplifting"
+      ],
+      "file_path": "cues/last_laugh/upbeat/last_laugh_upbeat.wav"
+    },
+    {
+      "title": "Redline City",
+      "composer": "Duncan",
+      "bpm": 134,
+      "key": "D# Major",
+      "genre": "Electronic",
+      "metadata_file": "redline_city.json",
+      "mood": [
+        "neon",
+        "driving",
+        "urban",
+        "energetic",
+        "high-speed"
+      ],
+      "files": {
+        "wav": "projects/redline_city.wav",
+        "mp3": "projects/redline_city.mp3",
+        "stems_folder": "projects/redline_city_stems"
+      }
+    }
+  ]
+}
