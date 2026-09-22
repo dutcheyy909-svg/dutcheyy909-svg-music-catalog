@@ -87,7 +87,7 @@ def test_load_track_metadata_ignores_non_track_json_objects(metadata_dir):
     assert [metadata_file.name for metadata_file, _ in tracks] == ["track_a.json", "track_b.json"]
 
 
-def test_build_latest_metadata_uses_metadata_tiebreaker_instead_of_filename(tmp_path):
+def test_build_latest_metadata_uses_filename_for_equal_timestamps(tmp_path):
     for name, payload in {
         "zeta.json": {
             "title": "Alpha",
@@ -109,26 +109,6 @@ def test_build_latest_metadata_uses_metadata_tiebreaker_instead_of_filename(tmp_
         },
     }.items():
         (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
-
-    latest = extract_metadata.build_latest_metadata(tmp_path)
-
-    assert latest["title"] == "Zeta"
-    assert latest["metadata_file"] == "alpha.json"
-
-
-def test_build_latest_metadata_uses_filename_only_for_exact_metadata_ties(tmp_path):
-    duplicate_payload = {
-        "title": "Shared Title",
-        "composer": "Duncan",
-        "bpm": 110,
-        "key": "C Major",
-        "genre": "Pop",
-        "updated_at": "2026-09-21T10:15:00Z",
-        "file_path": "tracks/shared.wav",
-    }
-
-    for name in ["alpha.json", "zeta.json"]:
-        (tmp_path / name).write_text(json.dumps(duplicate_payload), encoding="utf-8")
 
     latest = extract_metadata.build_latest_metadata(tmp_path)
 
