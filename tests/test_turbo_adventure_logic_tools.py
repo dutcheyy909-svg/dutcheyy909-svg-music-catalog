@@ -88,6 +88,38 @@ def test_load_track_metadata_ignores_non_track_json_objects(metadata_dir):
     assert [metadata_file.name for metadata_file, _ in tracks] == ["track_a.json", "track_b.json"]
 
 
+def test_load_track_metadata_rejects_invalid_present_source_fields(tmp_path):
+    base = {
+        "title": "Track",
+        "composer": "Duncan",
+        "bpm": 120,
+        "key": "A Minor",
+        "genre": "Pop",
+    }
+    (tmp_path / "invalid_file_path.json").write_text(
+        json.dumps(
+            {
+                **base,
+                "file_path": None,
+                "files": {"wav": "tracks/track.wav", "mp3": "tracks/track.mp3"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "invalid_files.json").write_text(
+        json.dumps({**base, "file_path": "tracks/track.wav", "files": []}),
+        encoding="utf-8",
+    )
+    (tmp_path / "valid.json").write_text(
+        json.dumps({**base, "file_path": "tracks/valid.wav"}),
+        encoding="utf-8",
+    )
+
+    tracks = extract_metadata.load_track_metadata(tmp_path)
+
+    assert [metadata_file.name for metadata_file, _ in tracks] == ["valid.json"]
+
+
 
 def test_build_latest_metadata_uses_metadata_tiebreaker_instead_of_filename(tmp_path):
     for name, payload in {
