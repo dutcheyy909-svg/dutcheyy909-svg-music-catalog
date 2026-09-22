@@ -74,17 +74,26 @@ def build_latest_metadata(metadata_dir: Path = METADATA_DIR) -> dict[str, Any]:
             "key, genre, and either file_path or files"
         )
 
-    latest_timestamp = max(parse_metadata_timestamp(metadata) for _, metadata in tracks)
+    track_details = [
+        (metadata_file, metadata, parse_metadata_timestamp(metadata), metadata_signature(metadata))
+        for metadata_file, metadata in tracks
+    ]
+    latest_timestamp = max(timestamp for _, _, timestamp, _ in track_details)
     latest_candidates = [
-        track for track in tracks if parse_metadata_timestamp(track[1]) == latest_timestamp
+        track_detail
+        for track_detail in track_details
+        if track_detail[2] == latest_timestamp
     ]
-    strongest_signature = max(metadata_signature(metadata) for _, metadata in latest_candidates)
+    strongest_signature = max(signature for _, _, _, signature in latest_candidates)
     strongest_candidates = [
-        track
-        for track in latest_candidates
-        if metadata_signature(track[1]) == strongest_signature
+        track_detail
+        for track_detail in latest_candidates
+        if track_detail[3] == strongest_signature
     ]
-    latest_file, latest_metadata = min(strongest_candidates, key=lambda track: track[0].name)
+    latest_file, latest_metadata, _, _ = min(
+        strongest_candidates,
+        key=lambda track_detail: track_detail[0].name,
+    )
 
     result = dict(latest_metadata)
     result["metadata_file"] = latest_file.name
