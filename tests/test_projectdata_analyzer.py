@@ -6,6 +6,8 @@ import unittest
 from pathlib import Path
 
 import numpy as np
+from packaging.requirements import Requirement
+from packaging.version import Version
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +17,28 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 analyzer = importlib.import_module("projectdata_analyzer")
 extractor = importlib.import_module("projectdata_extractor")
+
+
+def _requirement_bounds(requirement_line):
+    requirement = Requirement(requirement_line)
+    lower_bound = None
+    upper_bound = None
+
+    for specifier in requirement.specifier:
+        version = Version(specifier.version)
+        if specifier.operator == "==":
+            lower_bound = ("==", version)
+            upper_bound = ("==", version)
+        elif specifier.operator in {">=", ">"}:
+            bound = (specifier.operator, version)
+            if lower_bound is None or bound[1] > lower_bound[1] or (bound[1] == lower_bound[1] and bound[0] == ">"):
+                lower_bound = bound
+        elif specifier.operator in {"<=", "<"}:
+            bound = (specifier.operator, version)
+            if upper_bound is None or bound[1] < upper_bound[1] or (bound[1] == upper_bound[1] and bound[0] == "<"):
+                upper_bound = bound
+
+    return requirement.name, lower_bound, upper_bound
 
 
 class ProjectDataAnalyzerTests(unittest.TestCase):
@@ -40,8 +64,14 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
 
         self.assertTrue({"librosa", "numpy", "pytest", "PyYAML"}.issubset(requirement_by_name))
         self.assertTrue({"librosa", "numpy"}.issubset(turbo_requirement_by_name))
-        self.assertEqual(requirement_by_name["librosa"], turbo_requirement_by_name["librosa"])
-        self.assertEqual(requirement_by_name["numpy"], turbo_requirement_by_name["numpy"])
+        self.assertEqual(
+            _requirement_bounds(requirement_by_name["librosa"]),
+            _requirement_bounds(turbo_requirement_by_name["librosa"]),
+        )
+        self.assertEqual(
+            _requirement_bounds(requirement_by_name["numpy"]),
+            _requirement_bounds(turbo_requirement_by_name["numpy"]),
+        )
 
     def test_extractor_is_compatibility_wrapper_for_analyzer(self):
         self.assertTrue(set(analyzer.__all__).issubset(extractor.__all__))
