@@ -48,6 +48,8 @@ def _extract_audio_references(data):
     files = data.get("files")
     if isinstance(files, dict):
         for value in files.values():
+            if not isinstance(value, str):
+                continue
             normalized = _normalize_reference_path(value)
             if normalized and Path(normalized).suffix.lower() in AUDIO_EXTENSIONS:
                 references.add(normalized)
