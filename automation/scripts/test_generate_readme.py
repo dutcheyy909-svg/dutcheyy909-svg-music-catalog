@@ -17,6 +17,20 @@ spec.loader.exec_module(module)
 
 
 class GenerateReadmeTests(unittest.TestCase):
+    def test_template_matches_issue_sections(self):
+        self.assertEqual(
+            module.load_template(),
+            "# {{project_name}}\n\n"
+            "## Overview\n"
+            "{{overview}}\n\n"
+            "## Latest Updates\n"
+            "{{latest_updates}}\n\n"
+            "## Skills\n"
+            "{{skills}}\n\n"
+            "## Projects\n"
+            "{{projects}}\n",
+        )
+
     def test_render_raises_on_template_data_mismatch(self):
         with self.assertRaises(ValueError):
             module.render("# {{project_name}}\n{{overview}}", {"project_name": "x"})
