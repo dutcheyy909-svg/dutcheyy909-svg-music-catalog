@@ -88,6 +88,54 @@ def test_load_track_metadata_ignores_non_track_json_objects(metadata_dir):
     assert [metadata_file.name for metadata_file, _ in tracks] == ["track_a.json", "track_b.json"]
 
 
+def test_is_track_metadata_rejects_invalid_file_path_even_with_valid_files():
+    metadata = {
+        "title": "Track A",
+        "composer": "Duncan",
+        "bpm": 100,
+        "key": "C Major",
+        "genre": "Electronic",
+        "file_path": None,
+        "files": {
+            "wav": "tracks/track_a.wav",
+            "mp3": "tracks/track_a.mp3",
+        },
+    }
+
+    assert extract_metadata.is_track_metadata(metadata) is False
+
+
+def test_is_track_metadata_rejects_invalid_files_even_with_valid_file_path():
+    metadata = {
+        "title": "Track B",
+        "composer": "Duncan",
+        "bpm": 120,
+        "key": "A Minor",
+        "genre": "Pop",
+        "file_path": "tracks/track_b.wav",
+        "files": [],
+    }
+
+    assert extract_metadata.is_track_metadata(metadata) is False
+
+
+def test_is_track_metadata_rejects_invalid_optional_files_fields():
+    metadata = {
+        "title": "Track A",
+        "composer": "Duncan",
+        "bpm": 100,
+        "key": "C Major",
+        "genre": "Electronic",
+        "files": {
+            "wav": "tracks/track_a.wav",
+            "mp3": "tracks/track_a.mp3",
+            "stems_folder": None,
+        },
+    }
+
+    assert extract_metadata.is_track_metadata(metadata) is False
+
+
 
 def test_build_latest_metadata_uses_metadata_tiebreaker_instead_of_filename(tmp_path):
     for name, payload in {

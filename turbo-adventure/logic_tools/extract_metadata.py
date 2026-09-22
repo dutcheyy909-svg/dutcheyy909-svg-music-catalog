@@ -48,7 +48,17 @@ def is_track_metadata(metadata: Any) -> bool:
     if not TRACK_REQUIRED_FIELDS.issubset(metadata):
         return False
 
-    return has_valid_file_path(metadata) or has_valid_files(metadata)
+    has_file_path = "file_path" in metadata
+    has_files = "files" in metadata
+
+    if not has_file_path and not has_files:
+        return False
+    if has_file_path and not has_valid_file_path(metadata):
+        return False
+    if has_files and not has_valid_files(metadata):
+        return False
+
+    return True
 
 
 def load_track_metadata(metadata_dir: Path = METADATA_DIR) -> list[tuple[Path, dict[str, Any]]]:
