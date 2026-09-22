@@ -8,15 +8,16 @@ WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "auto-update-readme.yml"
 
 
 class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
-    def _get_workflow(self):
-        self.assertTrue(WORKFLOW_PATH.is_file())
+    def _get_workflow(self, workflow_path=None):
+        workflow_path = workflow_path or WORKFLOW_PATH
+        self.assertTrue(workflow_path.is_file())
 
         try:
             import yaml
         except ImportError as exc:
             self.skipTest(f"PyYAML is required for workflow parsing: {exc}")
 
-        workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
+        workflow_text = workflow_path.read_text(encoding="utf-8")
         lines = workflow_text.splitlines(keepends=True)
         top_level_indent = None
         for line in lines:
@@ -47,8 +48,8 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         normalized_workflow_text = "".join(normalized_lines)
         return yaml.safe_load(normalized_workflow_text)
 
-    def _get_push_config(self):
-        workflow_on = self._get_workflow().get("on")
+    def _get_push_config(self, workflow_path=None):
+        workflow_on = self._get_workflow(workflow_path).get("on")
         self.assertIsNotNone(workflow_on, 'Workflow must define an "on" section')
 
         if isinstance(workflow_on, list):
@@ -62,8 +63,8 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         self.assertIsInstance(push_config, dict, 'Workflow "push" trigger must be a mapping')
         return push_config
 
-    def _get_update_readme_job(self):
-        jobs = self._get_workflow().get("jobs")
+    def _get_update_readme_job(self, workflow_path=None):
+        jobs = self._get_workflow(workflow_path).get("jobs")
         self.assertIsInstance(jobs, dict, 'Workflow must define a "jobs" mapping')
         self.assertIn("update-readme", jobs, 'Workflow "jobs" must define "update-readme"')
 
@@ -71,20 +72,20 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         self.assertIsInstance(update_readme_job, dict, 'Workflow job "update-readme" must be a mapping')
         return update_readme_job
 
-    def _get_step_list(self):
-        steps = self._get_update_readme_job().get("steps")
+    def _get_step_list(self, workflow_path=None):
+        steps = self._get_update_readme_job(workflow_path).get("steps")
         self.assertIsInstance(steps, list, 'Workflow job "update-readme" must define a steps list')
         return steps
 
-    def _find_step_by_uses(self, action):
-        for step in self._get_step_list():
+    def _find_step_by_uses(self, action, workflow_path=None):
+        for step in self._get_step_list(workflow_path):
             self.assertIsInstance(step, dict, "Workflow steps must be mappings")
             if step.get("uses") == action:
                 return step
         self.fail(f"Expected step using {action!r}")
 
-    def _find_step_containing_run(self, text):
-        for step in self._get_step_list():
+    def _find_step_containing_run(self, text, workflow_path=None):
+        for step in self._get_step_list(workflow_path):
             self.assertIsInstance(step, dict, "Workflow steps must be mappings")
             if text in step.get("run", ""):
                 return step
@@ -107,14 +108,7 @@ jobs:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_workflow_path = Path(temp_dir) / "workflow.yml"
             temp_workflow_path.write_text(workflow_text, encoding="utf-8")
-
-            global WORKFLOW_PATH
-            original_workflow_path = WORKFLOW_PATH
-            try:
-                WORKFLOW_PATH = temp_workflow_path
-                workflow = self._get_workflow()
-            finally:
-                WORKFLOW_PATH = original_workflow_path
+            workflow = self._get_workflow(temp_workflow_path)
 
         self.assertIn("on", workflow)
         self.assertNotIn(True, workflow)
