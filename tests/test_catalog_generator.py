@@ -22,12 +22,12 @@ class CatalogGeneratorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             repo_root = Path(temp_dir)
             (repo_root / "music").mkdir()
-            (repo_root / "output").mkdir()
-            (repo_root / "generated").mkdir()
+            (repo_root / "Output").mkdir()
+            (repo_root / "Generated").mkdir()
             (repo_root / "music" / "z-track.wav").write_bytes(b"")
             (repo_root / "music" / "a-track.MP3").write_bytes(b"")
-            (repo_root / "output" / "skip.wav").write_bytes(b"")
-            (repo_root / "generated" / "skip.mp3").write_bytes(b"")
+            (repo_root / "Output" / "skip.wav").write_bytes(b"")
+            (repo_root / "Generated" / "skip.mp3").write_bytes(b"")
             (repo_root / "catalog.json").write_text("[]", encoding="utf-8")
 
             catalog = module.build_catalog(repo_root)
