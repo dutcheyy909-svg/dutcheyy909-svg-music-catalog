@@ -34,7 +34,7 @@
       "properties": {
         "wav": { "type": "string", "minLength": 1 },
         "mp3": { "type": "string", "minLength": 1 },
-        "stems_folder": { "type": "string" }
+        "stems_folder": { "type": "string", "minLength": 1 }
       },
       "additionalProperties": true
     },
