@@ -106,6 +106,32 @@ def test_build_latest_metadata_uses_metadata_tiebreaker_instead_of_filename(tmp_
     assert latest["metadata_file"] == "alpha.json"
 
 
+
+def test_write_latest_metadata_serializes_metadata_file(metadata_dir, tmp_path):
+    output_path = tmp_path / "latest_metadata.json"
+
+    written_path = extract_metadata.write_latest_metadata(output_path=output_path, metadata_dir=metadata_dir)
+    written = json.loads(written_path.read_text(encoding="utf-8"))
+
+    assert written_path == output_path
+    assert written["metadata_file"] == "track_a.json"
+    assert written["title"] == "Track A"
+    assert output_path.read_text(encoding="utf-8").endswith("\n")
+
+
+def test_write_sync_metadata_serializes_track_index(metadata_dir, tmp_path):
+    output_path = tmp_path / "sync_metadata.json"
+
+    written_path = sync_metadata_builder.write_sync_metadata(output_path=output_path, metadata_dir=metadata_dir)
+    written = json.loads(written_path.read_text(encoding="utf-8"))
+
+    assert written_path == output_path
+    assert written["project"] == "turbo-adventure"
+    assert written["track_count"] == 2
+    assert written["tracks"][0]["metadata_file"] == "track_a.json"
+    assert output_path.read_text(encoding="utf-8").endswith("\n")
+
+
 def test_build_sync_metadata_index_sorts_and_filters_tracks(metadata_dir):
     sync_index = sync_metadata_builder.build_sync_metadata_index(metadata_dir)
 

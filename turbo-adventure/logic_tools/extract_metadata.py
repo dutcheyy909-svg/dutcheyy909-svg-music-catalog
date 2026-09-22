@@ -64,7 +64,11 @@ def latest_track_sort_key(track: tuple[Path, dict[str, Any]]) -> tuple[datetime,
 def build_latest_metadata(metadata_dir: Path = METADATA_DIR) -> dict[str, Any]:
     tracks = load_track_metadata(metadata_dir)
     if not tracks:
-        raise ValueError(f"No valid track metadata files found in {metadata_dir}")
+        raise ValueError(
+            "No valid track metadata files found in "
+            f"{metadata_dir}; expected JSON objects with title, composer, bpm, "
+            "key, genre, and either file_path or files"
+        )
 
     latest_file, latest_metadata = max(tracks, key=latest_track_sort_key)
 
