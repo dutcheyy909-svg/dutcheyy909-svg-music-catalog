@@ -18,7 +18,7 @@ SKIP_DIR_NAMES = {
 
 def build_catalog(repo_root: Path, output_path: Path | None = None) -> list[dict[str, str]]:
     entries_by_path = {}
-    active_output_path = output_path or OUTPUT_PATH
+    active_output_path = (OUTPUT_PATH if output_path is None else output_path).resolve()
     skip_dir_names = {directory.lower() for directory in SKIP_DIR_NAMES}
     sort_key = lambda value: (value.lower(), value)
 
@@ -30,7 +30,7 @@ def build_catalog(repo_root: Path, output_path: Path | None = None) -> list[dict
         root_path = Path(root)
 
         for filename in sorted(files, key=sort_key):
-            file_path = root_path / filename
+            file_path = (root_path / filename).resolve()
             if file_path == active_output_path:
                 continue
 
