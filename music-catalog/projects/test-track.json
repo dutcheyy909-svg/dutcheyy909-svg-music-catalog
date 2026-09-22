@@ -1,20 +1,15 @@
 {
   "project_id": "test-track",
-  "title": "Redline City",
+  "title": "Test Track",
   "project_type": "song",
-  "status": "production",
+  "status": "idea",
+  "primary_artist": "DUTCHEYY",
   "genre": [
-    "Electronic",
-    "Cyberpunk EDM",
-    "Electro House",
-    "Synthwave Hybrid"
+    "EDM"
   ],
+  "bpm": 128,
   "mood": [
-    "Energetic",
-    "Aggressive",
-    "Powerful",
-    "Futuristic"
+    "Energetic"
   ],
-  "created_at": "2026-09-22T00:00:00Z",
-  "notes": "Project entry used for validating project schema in CI."
+  "created_at": "2026-09-02T18:23:51Z"
 }
