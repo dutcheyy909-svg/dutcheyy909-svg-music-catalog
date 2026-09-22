@@ -1,20 +1,26 @@
 """Compatibility wrapper for the canonical project data analyzer module."""
 
+import importlib.util
 import sys
 from pathlib import Path
 
 MODULE_DIR = Path(__file__).resolve().parent
-module_dir_str = str(MODULE_DIR)
-added_module_dir = False
-if module_dir_str not in sys.path:
-    sys.path.insert(0, module_dir_str)
-    added_module_dir = True
+ANALYZER_MODULE_NAME = "projectdata_analyzer"
+ANALYZER_PATH = MODULE_DIR / f"{ANALYZER_MODULE_NAME}.py"
 
-try:
-    import projectdata_analyzer as _analyzer
-finally:
-    if added_module_dir:
-        sys.path.remove(module_dir_str)
+_analyzer = sys.modules.get(ANALYZER_MODULE_NAME)
+if _analyzer is None:
+    spec = importlib.util.spec_from_file_location(ANALYZER_MODULE_NAME, ANALYZER_PATH)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to load analyzer module from {ANALYZER_PATH}")
+
+    _analyzer = importlib.util.module_from_spec(spec)
+    sys.modules[ANALYZER_MODULE_NAME] = _analyzer
+    try:
+        spec.loader.exec_module(_analyzer)
+    except Exception:
+        sys.modules.pop(ANALYZER_MODULE_NAME, None)
+        raise
 
 csv = _analyzer.csv
 defaultdict = _analyzer.defaultdict
