@@ -18,7 +18,7 @@ SKIP_DIR_NAMES = {
 
 def build_catalog(repo_root: Path, output_path: Path | None = None) -> list[dict[str, str]]:
     entries_by_path = {}
-    active_output_path = (OUTPUT_PATH if output_path is None else output_path).resolve()
+    active_output_path = ((repo_root / "catalog.json") if output_path is None else output_path).resolve()
     skip_dir_names = {directory.lower() for directory in SKIP_DIR_NAMES}
     sort_key = lambda value: (value.lower(), value)
 
