@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -33,7 +34,7 @@ def has_valid_files(metadata: dict[str, Any]) -> bool:
         return False
 
     stems_folder = files.get("stems_folder")
-    if stems_folder is not None and (
+    if "stems_folder" in files and (
         not isinstance(stems_folder, str) or not stems_folder.strip()
     ):
         return False
@@ -48,7 +49,12 @@ def has_valid_required_fields(metadata: dict[str, Any]) -> bool:
             return False
 
     bpm = metadata.get("bpm")
-    if isinstance(bpm, bool) or not isinstance(bpm, (int, float)) or not 0 < bpm < float("inf"):
+    if (
+        isinstance(bpm, bool)
+        or not isinstance(bpm, (int, float))
+        or not math.isfinite(bpm)
+        or bpm <= 0
+    ):
         return False
 
     return True

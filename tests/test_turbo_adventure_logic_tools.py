@@ -119,6 +119,18 @@ def test_load_track_metadata_rejects_invalid_present_source_fields(tmp_path):
                 "mp3": "tracks/invalid-path.mp3",
             },
         },
+        "invalid_stems_folder.json": {
+            "title": "Invalid Stems Folder",
+            "composer": "Duncan",
+            "bpm": 131,
+            "key": "A Minor",
+            "genre": "Electronic",
+            "files": {
+                "wav": "tracks/invalid-stems.wav",
+                "mp3": "tracks/invalid-stems.mp3",
+                "stems_folder": None,
+            },
+        },
     }.items():
         (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
 
@@ -141,6 +153,32 @@ def test_load_track_metadata_rejects_invalid_required_field_types(tmp_path):
         ),
         encoding="utf-8",
     )
+    (tmp_path / "nan_bpm.json").write_text(
+        json.dumps(
+            {
+                "title": "NaN BPM",
+                "composer": "Duncan",
+                "bpm": float("nan"),
+                "key": "A Minor",
+                "genre": "Electronic",
+                "file_path": "tracks/nan-bpm.wav",
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "infinite_bpm.json").write_text(
+        json.dumps(
+            {
+                "title": "Infinite BPM",
+                "composer": "Duncan",
+                "bpm": float("inf"),
+                "key": "A Minor",
+                "genre": "Electronic",
+                "file_path": "tracks/infinite-bpm.wav",
+            }
+        ),
+        encoding="utf-8",
+    )
     (tmp_path / "invalid_title.json").write_text(
         json.dumps(
             {
@@ -156,8 +194,6 @@ def test_load_track_metadata_rejects_invalid_required_field_types(tmp_path):
     )
 
     assert extract_metadata.load_track_metadata(tmp_path) == []
-
-
 
 def test_build_latest_metadata_uses_metadata_tiebreaker_instead_of_filename(tmp_path):
     for name, payload in {
