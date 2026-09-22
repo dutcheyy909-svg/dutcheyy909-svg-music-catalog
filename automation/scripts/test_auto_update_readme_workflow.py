@@ -12,11 +12,10 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
-        cls.workflow = yaml.safe_load(workflow_text)
+        cls.workflow = yaml.load(workflow_text, Loader=yaml.BaseLoader)
 
     def _get_push_config(self):
-        workflow_on = self.workflow.get("on", self.workflow.get(True, {}))
-        return workflow_on.get("push", {})
+        return self.workflow["on"]["push"]
 
     def _get_steps(self):
         return self.workflow["jobs"]["update-readme"]["steps"]
@@ -53,9 +52,10 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         install_step = self._find_step_containing_run("automation/scripts/requirements.txt")
         self.assertEqual(install_step["name"], "Install dependencies")
 
-        commit_step = self._find_step_containing_run("git add README.md")["run"]
-        self.assertIn('git commit -m "Auto-update README"', commit_step)
-        self.assertIn("git push", commit_step)
+        commit_step = self._find_step_containing_run("git add README.md")
+        self.assertEqual(commit_step["name"], "Commit updated README")
+        self.assertIn('git commit -m "Auto-update README"', commit_step["run"])
+        self.assertIn("git push", commit_step["run"])
 
 
 if __name__ == "__main__":
