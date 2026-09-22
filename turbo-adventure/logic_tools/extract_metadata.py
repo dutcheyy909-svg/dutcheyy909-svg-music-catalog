@@ -147,8 +147,9 @@ def write_latest_metadata(
 
     try:
         temp_output_path.replace(output_path)
-    finally:
+    except OSError:
         temp_output_path.unlink(missing_ok=True)
+        raise
     return output_path
 
 
