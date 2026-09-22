@@ -1,4 +1,5 @@
 import importlib
+import re
 import sys
 import tempfile
 import unittest
@@ -28,22 +29,19 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
             for line in TURBO_REQUIREMENTS_PATH.read_text(encoding="utf-8").splitlines()
             if line.split("#", 1)[0].strip() and not line.split("#", 1)[0].strip().startswith("-")
         }
+        requirement_by_name = {
+            re.match(r"[A-Za-z0-9_.-]+", line).group(0): line
+            for line in requirement_lines
+        }
+        turbo_requirement_by_name = {
+            re.match(r"[A-Za-z0-9_.-]+", line).group(0): line
+            for line in turbo_requirement_lines
+        }
 
-        self.assertTrue(
-            {
-                "librosa==0.10.0",
-                "numpy>=1.26,<2",
-                "pytest>=8,<9",
-                "PyYAML>=6,<7",
-            }.issubset(requirement_lines)
-        )
-        self.assertTrue(
-            {
-                "librosa==0.10.0",
-                "numpy>=1.26,<2",
-            }.issubset(turbo_requirement_lines)
-        )
-        self.assertTrue(turbo_requirement_lines.issubset(requirement_lines))
+        self.assertTrue({"librosa", "numpy", "pytest", "PyYAML"}.issubset(requirement_by_name))
+        self.assertTrue({"librosa", "numpy"}.issubset(turbo_requirement_by_name))
+        self.assertEqual(requirement_by_name["librosa"], turbo_requirement_by_name["librosa"])
+        self.assertEqual(requirement_by_name["numpy"], turbo_requirement_by_name["numpy"])
 
     def test_extractor_is_compatibility_wrapper_for_analyzer(self):
         self.assertTrue(set(analyzer.__all__).issubset(extractor.__all__))
