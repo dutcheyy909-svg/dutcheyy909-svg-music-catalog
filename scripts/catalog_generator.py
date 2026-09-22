@@ -17,12 +17,13 @@ SKIP_DIR_NAMES = {
 
 
 def build_catalog(repo_root: Path, output_path: Path | None = None) -> list[dict[str, str]]:
+    resolved_repo_root = repo_root.resolve()
     entries_by_path = {}
-    active_output_path = ((repo_root / "catalog.json") if output_path is None else output_path).resolve()
+    active_output_path = ((resolved_repo_root / "catalog.json") if output_path is None else output_path).resolve()
     skip_dir_names = {directory.lower() for directory in SKIP_DIR_NAMES}
     sort_key = lambda value: (value.lower(), value)
 
-    for root, dirs, files in os.walk(repo_root):
+    for root, dirs, files in os.walk(resolved_repo_root):
         dirs[:] = sorted(
             (directory for directory in dirs if directory.lower() not in skip_dir_names),
             key=sort_key,
@@ -37,7 +38,7 @@ def build_catalog(repo_root: Path, output_path: Path | None = None) -> list[dict
             if file_path.suffix.lower() not in AUDIO_EXTENSIONS:
                 continue
 
-            relative_path = file_path.relative_to(repo_root).as_posix()
+            relative_path = file_path.relative_to(resolved_repo_root).as_posix()
             entries_by_path[relative_path] = {
                 "filename": filename,
                 "path": relative_path,
