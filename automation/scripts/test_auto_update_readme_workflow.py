@@ -16,7 +16,7 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
             self.skipTest(f"PyYAML is required for workflow parsing: {exc}")
 
         workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
-        normalized_workflow_text = re.sub(r"(?m)^on:(.*)$", r'"on":\1', workflow_text, count=1)
+        normalized_workflow_text = re.sub(r'(?m)^(\s*)on:(.*)$', r'\1"on":\2', workflow_text, count=1)
         return yaml.safe_load(normalized_workflow_text)
 
     def _get_push_config(self):
