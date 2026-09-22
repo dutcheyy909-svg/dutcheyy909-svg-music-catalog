@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f automation/scripts/requirements.txt ] && grep -qEv '^\s*(#.*)?$' automation/scripts/requirements.txt; then
+          if [ -f automation/scripts/requirements.txt ] && grep -qEv '^[[:space:]]*(#.*)?$' automation/scripts/requirements.txt; then
             python -m pip install -r automation/scripts/requirements.txt
           else
             echo "No external README generator dependencies."
