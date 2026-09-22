@@ -17,18 +17,18 @@ spec.loader.exec_module(module)
 
 
 class GenerateReadmeTests(unittest.TestCase):
-    def test_template_matches_issue_sections(self):
+    def test_template_matches_canonical_sections(self):
         self.assertEqual(
             module.load_template(),
             "# {{project_name}}\n\n"
             "## Overview\n"
             "{{overview}}\n\n"
-            "## Latest Updates\n"
-            "{{latest_updates}}\n\n"
-            "## Skills\n"
-            "{{skills}}\n\n"
-            "## Projects\n"
-            "{{projects}}\n",
+            "## Repository Layout\n"
+            "{{repository_layout}}\n\n"
+            "## Automation\n"
+            "{{automation}}\n\n"
+            "## Validation\n"
+            "{{validation}}\n",
         )
 
     def test_render_raises_on_template_data_mismatch(self):
@@ -49,6 +49,10 @@ class GenerateReadmeTests(unittest.TestCase):
             {"project_name": "Literal {{overview}} text", "overview": "must not be injected"},
         )
         self.assertEqual(rendered, "# Literal {{overview}} text\nmust not be injected")
+
+    def test_repository_readme_matches_template_render(self):
+        expected_readme = module.render(module.load_template(), module.load_sections())
+        self.assertEqual(module.README_PATH.read_text(encoding="utf-8"), expected_readme)
 
     def test_main_writes_readme_from_non_repo_cwd(self):
         with tempfile.TemporaryDirectory() as temp_dir:

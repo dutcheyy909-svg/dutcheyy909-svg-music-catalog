@@ -3,11 +3,11 @@
 ## Overview
 {{overview}}
 
-## Latest Updates
-{{latest_updates}}
+## Repository Layout
+{{repository_layout}}
 
-## Skills
-{{skills}}
+## Automation
+{{automation}}
 
-## Projects
-{{projects}}
+## Validation
+{{validation}}
