@@ -106,6 +106,7 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
     def test_workflow_commits_updated_readme(self):
         install_step = self._find_step_containing_run("automation/scripts/requirements.txt")
         self.assertEqual(install_step.get("name"), "Install dependencies")
+        self.assertIn("python -m pip install -r automation/scripts/requirements.txt", install_step.get("run", ""))
 
         commit_step = self._find_step_containing_run("git add README.md")
         self.assertEqual(commit_step.get("name"), "Commit updated README")
