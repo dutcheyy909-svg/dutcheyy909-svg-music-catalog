@@ -169,6 +169,16 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
             self.assertEqual(Path(exported), output_path.resolve())
             self.assertIn("track_name", output_path.read_text(encoding="utf-8"))
 
+    def test_export_spotify_features_csv_stringifies_feature_keys(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = Path(temp_dir) / "spotify_features.csv"
+            analyzer.export_spotify_features_csv(
+                {"Track A": {1: 120, "mood": "driving"}},
+                output_path=output_path,
+            )
+
+            self.assertIn("1,mood,track_name", output_path.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

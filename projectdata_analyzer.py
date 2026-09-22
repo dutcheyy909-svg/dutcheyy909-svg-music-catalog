@@ -438,7 +438,7 @@ def export_spotify_features_csv(spotify_export, output_path="spotify_features.cs
         fieldnames = {"track_name"}
         for features in spotify_export.values():
             if isinstance(features, dict):
-                fieldnames.update(features.keys())
+                fieldnames.update(str(key) for key in features)
 
         ordered_fieldnames = sorted(fieldnames)
 
@@ -449,7 +449,7 @@ def export_spotify_features_csv(spotify_export, output_path="spotify_features.cs
             for track_name, features in spotify_export.items():
                 row = {"track_name": track_name}
                 if isinstance(features, dict):
-                    row.update(features)
+                    row.update({str(key): value for key, value in features.items()})
                 writer.writerow(row)
 
         return str(Path(output_path).resolve())
