@@ -72,12 +72,14 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
 
     def _find_step_by_uses(self, action):
         for step in self._get_step_list():
+            self.assertIsInstance(step, dict, "Workflow steps must be mappings")
             if step.get("uses") == action:
                 return step
         self.fail(f"Expected step using {action!r}")
 
     def _find_step_containing_run(self, text):
         for step in self._get_step_list():
+            self.assertIsInstance(step, dict, "Workflow steps must be mappings")
             if text in step.get("run", ""):
                 return step
         self.fail(f"Expected step containing run text {text!r}")
