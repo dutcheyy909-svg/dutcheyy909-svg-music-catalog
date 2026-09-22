@@ -14,6 +14,27 @@ GENERATED_METADATA_MARKER = "logic_tools.extract_metadata"
 TIMESTAMP_KEYS = ("updated_at", "updated", "created_at", "created")
 
 
+def _is_non_empty_string(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def has_valid_file_path(metadata: dict[str, Any]) -> bool:
+    return _is_non_empty_string(metadata.get("file_path"))
+
+
+def has_valid_files(metadata: dict[str, Any]) -> bool:
+    files = metadata.get("files")
+    if not isinstance(files, dict):
+        return False
+    if not _is_non_empty_string(files.get("wav")):
+        return False
+    if not _is_non_empty_string(files.get("mp3")):
+        return False
+    if "stems_folder" in files and not _is_non_empty_string(files["stems_folder"]):
+        return False
+    return True
+
+
 def is_track_metadata(metadata: Any) -> bool:
     if not isinstance(metadata, dict):
         return False
@@ -21,7 +42,18 @@ def is_track_metadata(metadata: Any) -> bool:
         return False
     if not TRACK_REQUIRED_FIELDS.issubset(metadata):
         return False
-    return "file_path" in metadata or "files" in metadata
+
+    has_file_path = "file_path" in metadata
+    has_files = "files" in metadata
+
+    if not has_file_path and not has_files:
+        return False
+    if has_file_path and not has_valid_file_path(metadata):
+        return False
+    if has_files and not has_valid_files(metadata):
+        return False
+
+    return True
 
 
 def load_track_metadata(metadata_dir: Path = METADATA_DIR) -> list[tuple[Path, dict[str, Any]]]:

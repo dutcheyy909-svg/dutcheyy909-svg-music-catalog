@@ -87,6 +87,97 @@ def test_load_track_metadata_ignores_non_track_json_objects(metadata_dir):
     assert [metadata_file.name for metadata_file, _ in tracks] == ["track_a.json", "track_b.json"]
 
 
+def test_is_track_metadata_accepts_valid_file_path_only_metadata():
+    metadata = {
+        "title": "Track B",
+        "composer": "Duncan",
+        "bpm": 120,
+        "key": "A Minor",
+        "genre": "Pop",
+        "file_path": "tracks/track_b.wav",
+    }
+
+    assert extract_metadata.is_track_metadata(metadata) is True
+
+
+def test_is_track_metadata_accepts_valid_files_only_metadata():
+    metadata = {
+        "title": "Track A",
+        "composer": "Duncan",
+        "bpm": 100,
+        "key": "C Major",
+        "genre": "Electronic",
+        "files": {
+            "wav": "tracks/track_a.wav",
+            "mp3": "tracks/track_a.mp3",
+        },
+    }
+
+    assert extract_metadata.is_track_metadata(metadata) is True
+
+
+@pytest.mark.parametrize("file_path", [None, "", "   ", [], 7])
+def test_is_track_metadata_rejects_invalid_present_file_path(file_path):
+    metadata = {
+        "title": "Track A",
+        "composer": "Duncan",
+        "bpm": 100,
+        "key": "C Major",
+        "genre": "Electronic",
+        "file_path": file_path,
+        "files": {
+            "wav": "tracks/track_a.wav",
+            "mp3": "tracks/track_a.mp3",
+        },
+    }
+
+    assert extract_metadata.is_track_metadata(metadata) is False
+
+
+@pytest.mark.parametrize(
+    "files",
+    [
+        None,
+        [],
+        {},
+        {"wav": "", "mp3": "tracks/track_a.mp3"},
+        {"wav": "tracks/track_a.wav", "mp3": ""},
+        {"wav": "tracks/track_a.wav"},
+        {"mp3": "tracks/track_a.mp3"},
+    ],
+)
+def test_is_track_metadata_rejects_malformed_present_files(files):
+    metadata = {
+        "title": "Track A",
+        "composer": "Duncan",
+        "bpm": 100,
+        "key": "C Major",
+        "genre": "Electronic",
+        "file_path": "tracks/track_a.wav",
+        "files": files,
+    }
+
+    assert extract_metadata.is_track_metadata(metadata) is False
+
+
+@pytest.mark.parametrize("stems_folder", [None, "", "   ", []])
+def test_is_track_metadata_rejects_invalid_stems_folder(stems_folder):
+    metadata = {
+        "title": "Track A",
+        "composer": "Duncan",
+        "bpm": 100,
+        "key": "C Major",
+        "genre": "Electronic",
+        "files": {
+            "wav": "tracks/track_a.wav",
+            "mp3": "tracks/track_a.mp3",
+            "stems_folder": stems_folder,
+        },
+    }
+
+    assert extract_metadata.is_track_metadata(metadata) is False
+
+
 def test_build_latest_metadata_uses_filename_for_equal_timestamps(tmp_path):
     for name, payload in {
         "zeta.json": {
