@@ -60,9 +60,9 @@ jobs:
 
       - name: Confirm catalogue was generated
         run: |
-          test -f CATALOG.md
-          echo "CATALOG.md generated successfully"
+          test -f catalog.json
+          echo "catalog.json generated successfully"
 
       - name: Check generated catalogue is current
         run: |
-          git diff --exit-code -- CATALOG.md
+          git diff --exit-code -- catalog.json
