@@ -66,26 +66,26 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         self.assertTrue(WORKFLOW_PATH.is_file())
 
     def test_workflow_triggers_on_push_to_main(self):
-        self.assertEqual(self._get_workflow()["name"], "Auto-Update README")
-        self.assertEqual(self._get_push_config()["branches"], ["main"])
+        self.assertEqual(self._get_workflow().get("name"), "Auto-Update README")
+        self.assertEqual(self._get_push_config().get("branches"), ["main"])
 
     def test_workflow_sets_up_python_and_generates_readme(self):
-        self.assertEqual(self._find_step_by_uses("actions/checkout@v5")["name"], "Checkout repository")
+        self.assertEqual(self._find_step_by_uses("actions/checkout@v5").get("name"), "Checkout repository")
         setup_python_step = self._find_step_by_uses("actions/setup-python@v5")
-        self.assertEqual(setup_python_step["with"]["python-version"], "3.11")
+        self.assertEqual(setup_python_step.get("with", {}).get("python-version"), "3.11")
         self.assertEqual(
-            self._find_step_containing_run("python automation/scripts/generate-readme.py")["name"],
+            self._find_step_containing_run("python automation/scripts/generate-readme.py").get("name"),
             "Generate README",
         )
 
     def test_workflow_commits_updated_readme(self):
         install_step = self._find_step_containing_run("automation/scripts/requirements.txt")
-        self.assertEqual(install_step["name"], "Install dependencies")
+        self.assertEqual(install_step.get("name"), "Install dependencies")
 
         commit_step = self._find_step_containing_run("git add README.md")
-        self.assertEqual(commit_step["name"], "Commit updated README")
-        self.assertIn('git commit -m "Auto-update README"', commit_step["run"])
-        self.assertIn("git push", commit_step["run"])
+        self.assertEqual(commit_step.get("name"), "Commit updated README")
+        self.assertIn('git commit -m "Auto-update README"', commit_step.get("run", ""))
+        self.assertIn("git push", commit_step.get("run", ""))
 
 
 if __name__ == "__main__":
