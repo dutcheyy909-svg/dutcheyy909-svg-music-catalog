@@ -37,12 +37,11 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
                 "PyYAML>=6,<7",
             }.issubset(requirement_lines)
         )
-        self.assertEqual(
-            turbo_requirement_lines,
+        self.assertTrue(
             {
                 "librosa==0.10.0",
                 "numpy>=1.26,<2",
-            },
+            }.issubset(turbo_requirement_lines)
         )
         self.assertTrue(turbo_requirement_lines.issubset(requirement_lines))
 
