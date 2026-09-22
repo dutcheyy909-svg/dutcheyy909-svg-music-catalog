@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "auto-update-readme.yml"
 
 
@@ -115,15 +115,27 @@ jobs:
         self.assertEqual(workflow["on"]["push"]["branches"], ["main"])
 
     def test_workflow_triggers_on_push_to_main(self):
-        self.assertEqual(self._get_push_config().get("branches"), ["main"])
+        push_config = self._get_push_config()
+        self.assertEqual(push_config.get("branches"), ["main"])
+        self.assertNotIn("paths-ignore", push_config)
+        self.assertNotIn("paths", push_config)
+
+    def test_workflow_supports_manual_dispatch(self):
+        self.assertIn("workflow_dispatch", self._get_workflow().get("on"))
 
     def test_workflow_runs_on_ubuntu_latest(self):
         self.assertEqual(self._get_update_readme_job().get("runs-on"), "ubuntu-latest")
 
+    def test_workflow_uses_bot_loop_guard(self):
+        self.assertEqual(
+            self._get_update_readme_job().get("if"),
+            "github.event_name != 'push' || github.actor != 'github-actions[bot]'",
+        )
+
     def test_workflow_sets_up_python_and_generates_readme(self):
         self._find_step_by_uses("actions/checkout@v5")
         setup_python_step = self._find_step_by_uses("actions/setup-python@v5")
-        self.assertTrue(setup_python_step.get("with", {}).get("python-version"))
+        self.assertEqual(setup_python_step.get("with", {}).get("python-version"), "3.11")
         self._find_step_containing_run("python automation/scripts/generate-readme.py")
 
     def test_workflow_commits_updated_readme(self):
@@ -131,6 +143,7 @@ jobs:
         self.assertIn("python -m pip install -r automation/scripts/requirements.txt", install_step.get("run", ""))
 
         commit_step = self._find_step_containing_run("git add README.md")
+        self.assertIn("git diff --quiet -- README.md", commit_step.get("run", ""))
         self.assertIn('git commit -m "Auto-update README"', commit_step.get("run", ""))
         self.assertIn("git push", commit_step.get("run", ""))
 
