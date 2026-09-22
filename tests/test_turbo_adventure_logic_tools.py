@@ -24,7 +24,7 @@ def metadata_dir(tmp_path):
             "bpm": 120,
             "key": "A Minor",
             "genre": "Pop",
-            "created_at": "2026-09-20",
+            "created": "2026-09-20",
             "file_path": "tracks/track_b.wav",
         },
         "track_a.json": {
@@ -33,7 +33,7 @@ def metadata_dir(tmp_path):
             "bpm": 100,
             "key": "C Major",
             "genre": "Electronic",
-            "updated": "2026-09-21",
+            "updated_at": "2026-09-21T10:15:00Z",
             "mood_tags": ["driving"],
             "files": {
                 "wav": "tracks/track_a.wav",
@@ -57,6 +57,14 @@ def test_build_latest_metadata_picks_newest_track(metadata_dir):
     assert "files" in latest
 
 
+def test_parse_metadata_timestamp_supports_supported_keys_and_z_suffix():
+    parsed = extract_metadata.parse_metadata_timestamp({"updated_at": "2026-09-21T10:15:00Z"})
+    fallback = extract_metadata.parse_metadata_timestamp({"created": "2026-09-20"})
+
+    assert parsed.isoformat() == "2026-09-21T10:15:00+00:00"
+    assert fallback.isoformat() == "2026-09-20T00:00:00+00:00"
+
+
 def test_build_sync_metadata_index_sorts_and_filters_tracks(metadata_dir):
     sync_index = sync_metadata_builder.build_sync_metadata_index(metadata_dir)
 
@@ -64,3 +72,6 @@ def test_build_sync_metadata_index_sorts_and_filters_tracks(metadata_dir):
     assert sync_index["track_count"] == 2
     assert [track["title"] for track in sync_index["tracks"]] == ["Track A", "Track B"]
     assert sync_index["tracks"][0]["metadata_file"] == "track_a.json"
+    assert sync_index["tracks"][0]["mood"] == ["driving"]
+    assert sync_index["tracks"][0]["files"]["mp3"] == "tracks/track_a.mp3"
+    assert sync_index["tracks"][1]["file_path"] == "tracks/track_b.wav"

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -33,11 +33,14 @@ def parse_metadata_timestamp(metadata: dict[str, Any]) -> datetime:
 
         normalized = str(value).replace("Z", "+00:00")
         try:
-            return datetime.fromisoformat(normalized)
+            parsed = datetime.fromisoformat(normalized)
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            return parsed
         except ValueError:
             continue
 
-    return datetime.min
+    return datetime.min.replace(tzinfo=timezone.utc)
 
 
 def build_latest_metadata(metadata_dir: Path = METADATA_DIR) -> dict[str, Any]:
