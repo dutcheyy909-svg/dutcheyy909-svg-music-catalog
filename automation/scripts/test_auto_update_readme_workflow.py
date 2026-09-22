@@ -36,7 +36,15 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         return push_config
 
     def _get_steps(self):
-        return self._get_workflow()["jobs"]["update-readme"]["steps"]
+        jobs = self._get_workflow().get("jobs")
+        self.assertIsInstance(jobs, dict, 'Workflow must define a "jobs" mapping')
+        self.assertIn("update-readme", jobs, 'Workflow "jobs" must define "update-readme"')
+
+        update_readme_job = jobs["update-readme"]
+        self.assertIsInstance(update_readme_job, dict, 'Workflow job "update-readme" must be a mapping')
+        steps = update_readme_job.get("steps")
+        self.assertIsInstance(steps, list, 'Workflow job "update-readme" must define a steps list')
+        return steps
 
     def _find_step_by_uses(self, action):
         for step in self._get_steps():
