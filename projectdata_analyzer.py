@@ -22,6 +22,7 @@ __all__ = [
     "export_audiosparx_metadata",
     "export_ringo_metadata",
     "export_songtradr_metadata",
+    "export_spotify_features_csv",
     "generate_report",
     "generate_sync_tags",
     "infer_mood",
@@ -422,6 +423,39 @@ def infer_mood(bpm, brightness):
     if 80 <= bpm <= 120 and brightness > 2500:
         return "driving"
     return "neutral"
+
+
+# ---------------------------------------------------------
+#  Export Spotify-style CSV
+# ---------------------------------------------------------
+
+def export_spotify_features_csv(spotify_export, output_path="spotify_features.csv"):
+    """Export audio features to CSV in Spotify-style format."""
+    try:
+        if not spotify_export:
+            return None
+
+        fieldnames = {"track_name"}
+        for features in spotify_export.values():
+            if isinstance(features, dict):
+                fieldnames.update(features.keys())
+
+        ordered_fieldnames = sorted(fieldnames)
+
+        with open(output_path, "w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=ordered_fieldnames)
+            writer.writeheader()
+
+            for track_name, features in spotify_export.items():
+                row = {"track_name": track_name}
+                if isinstance(features, dict):
+                    row.update(features)
+                writer.writerow(row)
+
+        return str(Path(output_path).resolve())
+    except (OSError, ValueError, TypeError, csv.Error) as exc:
+        LOGGER.warning("Unable to export Spotify-style features CSV: %s", exc)
+        return None
 
 
 # ---------------------------------------------------------

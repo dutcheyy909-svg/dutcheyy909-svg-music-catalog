@@ -46,6 +46,7 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
         self.assertIs(extractor.generate_sync_tags, analyzer.generate_sync_tags)
         self.assertIs(extractor.analyze_audio_features, analyzer.analyze_audio_features)
         self.assertIs(extractor.detect_duplicates, analyzer.detect_duplicates)
+        self.assertIs(extractor.export_spotify_features_csv, analyzer.export_spotify_features_csv)
 
     def test_generate_sync_tags_handles_non_string_metadata_values(self):
         tags = analyzer.generate_sync_tags(
@@ -116,6 +117,17 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
                 "movement": 0.5,
             },
         )
+
+    def test_export_spotify_features_csv_returns_written_path(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = Path(temp_dir) / "spotify_features.csv"
+            exported = analyzer.export_spotify_features_csv(
+                {"Track A": {"bpm": 120, "mood": "driving"}},
+                output_path=output_path,
+            )
+
+            self.assertEqual(Path(exported), output_path.resolve())
+            self.assertIn("track_name", output_path.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

@@ -25,6 +25,7 @@ generate_report = _analyzer.generate_report
 export_songtradr_metadata = _analyzer.export_songtradr_metadata
 export_audiosparx_metadata = _analyzer.export_audiosparx_metadata
 export_ringo_metadata = _analyzer.export_ringo_metadata
+export_spotify_features_csv = _analyzer.export_spotify_features_csv
 
 __all__ = [
     "analyze_audio_features",
@@ -38,6 +39,7 @@ __all__ = [
     "export_audiosparx_metadata",
     "export_ringo_metadata",
     "export_songtradr_metadata",
+    "export_spotify_features_csv",
     "generate_report",
     "generate_sync_tags",
     "infer_mood",
