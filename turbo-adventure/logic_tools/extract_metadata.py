@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -133,11 +134,17 @@ def write_latest_metadata(
 ) -> Path:
     latest_metadata = build_latest_metadata(metadata_dir)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    temp_output_path = output_path.with_suffix(output_path.suffix + ".tmp")
-    temp_output_path.write_text(
-        json.dumps(latest_metadata, indent=2, ensure_ascii=False) + "\n",
+    with tempfile.NamedTemporaryFile(
+        "w",
         encoding="utf-8",
-    )
+        dir=output_path.parent,
+        prefix=f"{output_path.stem}-",
+        suffix=".tmp",
+        delete=False,
+    ) as temp_file:
+        temp_file.write(json.dumps(latest_metadata, indent=2, ensure_ascii=False) + "\n")
+        temp_output_path = Path(temp_file.name)
+
     temp_output_path.replace(output_path)
     return output_path
 
