@@ -76,7 +76,9 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
     def test_extractor_is_compatibility_wrapper_for_analyzer(self):
         self.assertTrue(set(analyzer.__all__).issubset(extractor.__all__))
         self.assertTrue(
-            {"csv", "defaultdict", "json", "librosa", "LOGGER", "np", "Path"}.issubset(extractor.__all__)
+            {"csv", "defaultdict", "json", "librosa", "LOGGER", "np", "Path", "export_spotify_csv"}.issubset(
+                extractor.__all__
+            )
         )
 
         for name in analyzer.__all__:
@@ -84,6 +86,7 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
 
         for name in ("csv", "defaultdict", "json", "librosa", "LOGGER", "np", "Path"):
             self.assertIs(getattr(extractor, name), getattr(analyzer, name))
+        self.assertIs(extractor.export_spotify_csv, analyzer.export_spotify_features_csv)
 
     def test_generate_sync_tags_handles_non_string_metadata_values(self):
         tags = analyzer.generate_sync_tags(
