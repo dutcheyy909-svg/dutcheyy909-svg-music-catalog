@@ -33,10 +33,16 @@ def summarize_metadata(folder):
             try:
                 with open(file) as f:
                     data = json.load(f)
-                summary["json"][file.name] = {
-                    "keys": list(data.keys()),
-                    "length": len(data)
-                }
+                if isinstance(data, dict):
+                    summary["json"][file.name] = {
+                        "keys": list(data.keys()),
+                        "length": len(data)
+                    }
+                else:
+                    summary["json"][file.name] = {
+                        "keys": [],
+                        "length": len(data) if hasattr(data, "__len__") else 0
+                    }
             except Exception as e:
                 summary["json"][file.name] = {"error": str(e)}
 
@@ -59,11 +65,23 @@ def summarize_metadata(folder):
 #  Sync Licensing Tag Generator (metadata-based)
 # ---------------------------------------------------------
 
+def _safe_lower(value):
+    """Safely coerce a value to a lowercase string."""
+    if value is None:
+        return ""
+    return str(value).lower()
+
+
 def generate_sync_tags(metadata, audio_features=None):
     tags = []
 
+    if not isinstance(metadata, dict):
+        metadata = {}
+    if audio_features is not None and not isinstance(audio_features, dict):
+        audio_features = None
+
     # Genre-based tags
-    genre = metadata.get("genre", "").lower()
+    genre = _safe_lower(metadata.get("genre", ""))
     if "edm" in genre:
         tags += ["energetic", "modern", "sports", "gaming", "upbeat"]
     if "trap" in genre:
@@ -74,14 +92,14 @@ def generate_sync_tags(metadata, audio_features=None):
         tags += ["emotional", "cinematic", "heartfelt", "film", "advertising"]
 
     # Mood-based tags
-    mood = metadata.get("mood", "").lower()
+    mood = _safe_lower(metadata.get("mood", ""))
     if "uplifting" in mood:
         tags += ["positive", "corporate", "advertising", "feel-good"]
     if "tension" in mood:
         tags += ["suspense", "crime", "drama", "trailer"]
 
     # Instrument-based tags
-    instruments = metadata.get("instruments", "").lower()
+    instruments = _safe_lower(metadata.get("instruments", ""))
     if "guitar" in instruments:
         tags += ["organic", "warm", "indie"]
     if "synth" in instruments:
@@ -98,7 +116,7 @@ def generate_sync_tags(metadata, audio_features=None):
                 tags.append("mid-tempo")
             else:
                 tags.append("fast")
-        except Exception:
+        except (TypeError, ValueError):
             pass
 
     # Audio-analysis tags
@@ -106,14 +124,18 @@ def generate_sync_tags(metadata, audio_features=None):
         if audio_features.get("mood"):
             tags.append(audio_features["mood"])
 
-        if audio_features.get("bpm"):
-            bpm = audio_features["bpm"]
-            if bpm < 70:
-                tags.append("slow")
-            elif bpm < 110:
-                tags.append("mid-tempo")
-            else:
-                tags.append("fast")
+        af_bpm = audio_features.get("bpm")
+        if af_bpm:
+            try:
+                af_bpm = int(af_bpm)
+                if af_bpm < 70:
+                    tags.append("slow")
+                elif af_bpm < 110:
+                    tags.append("mid-tempo")
+                else:
+                    tags.append("fast")
+            except (TypeError, ValueError):
+                pass
 
     return list(set(tags))
 
@@ -122,51 +144,62 @@ def analyze_valence(y, sr):
     """
     Rough valence estimate (happy vs sad) using key + brightness.
     """
-    # Brightness
-    centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
-    brightness = float(np.mean(centroid))
+    try:
+        # Brightness
+        centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
+        brightness = float(np.mean(centroid)) if centroid.size else 0.0
 
-    # Chroma (key-ish)
-    chroma = librosa.feature.chroma_stft(y=y, sr=sr)
-    major_energy = float(np.mean(chroma[0:6]))   # C–F#
-    minor_energy = float(np.mean(chroma[6:12]))  # G–B
+        # Chroma (key-ish)
+        chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+        major_energy = float(np.mean(chroma[0:6])) if chroma.size else 0.0   # C–F#
+        minor_energy = float(np.mean(chroma[6:12])) if chroma.size else 0.0  # G–B
 
-    key_bias = major_energy - minor_energy
+        key_bias = major_energy - minor_energy
 
-    # Combine
-    valence = (brightness / 5000.0) * 0.6 + (key_bias) * 0.4
-    return max(0.0, min(valence, 1.0))
+        # Combine
+        valence = (brightness / 5000.0) * 0.6 + (key_bias) * 0.4
+        return max(0.0, min(valence, 1.0))
+    except Exception:
+        return 0.5
 
 
 def analyze_instrumentalness(y, sr):
     """
     Approximate instrumentalness: less vocal‑like energy → more instrumental.
     """
-    # MFCCs: vocal presence often shows strong mid‑range MFCCs
-    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
-    mid_band = mfcc[4:9]  # rough vocal region
-    mid_energy = float(np.mean(np.abs(mid_band)))
+    try:
+        # MFCCs: vocal presence often shows strong mid‑range MFCCs
+        mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+        mid_band = mfcc[4:9]  # rough vocal region
+        mid_energy = float(np.mean(np.abs(mid_band))) if mid_band.size else 0.0
 
-    instrumentalness = 1.0 - (mid_energy / 200.0)
-    return max(0.0, min(instrumentalness, 1.0))
+        instrumentalness = 1.0 - (mid_energy / 200.0)
+        return max(0.0, min(instrumentalness, 1.0))
+    except Exception:
+        return 0.5
 
 
 def analyze_liveness(y, sr):
     """
     Approximate liveness: more transient, noisy, room‑like → higher liveness.
     """
-    # Onset density
-    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
-    onset_density = float(np.mean(onset_env))
+    try:
+        # Onset density
+        onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+        onset_density = float(np.mean(onset_env)) if onset_env.size else 0.0
 
-    # High‑frequency energy
-    spec = librosa.stft(y)
-    freqs = librosa.fft_frequencies(sr=sr)
-    high_band = spec[freqs > 6000]
-    high_energy = float(np.mean(np.abs(high_band))) if high_band.size > 0 else 0.0
+        # High‑frequency energy
+        spec = librosa.stft(y)
+        freqs = librosa.fft_frequencies(sr=sr)
+        high_band = spec[freqs > 6000]
+        high_energy = float(np.mean(np.abs(high_band))) if high_band.size > 0 else 0.0
 
-    liveness = (onset_density / 5.0) * 0.6 + (high_energy / 5.0) * 0.4
-    return max(0.0, min(liveness, 1.0))
+        liveness = (onset_density / 5.0) * 0.6 + (high_energy / 5.0) * 0.4
+        return max(0.0, min(liveness, 1.0))
+    except Exception:
+        return 0.5
+
+
 # ---------------------------------------------------------
 #  Combine all JSON + CSV into unified structures
 # ---------------------------------------------------------
@@ -224,6 +257,17 @@ def detect_duplicates(combined_csv, key="id"):
 # ---------------------------------------------------------
 #  Audio Analysis (BPM, brightness, mood)
 # ---------------------------------------------------------
+
+def _get_tempo(y, sr):
+    """Get tempo, supporting both old (librosa.beat.tempo) and new
+    (librosa.feature.tempo) librosa APIs."""
+    try:
+        tempos = librosa.feature.tempo(y=y, sr=sr)
+    except AttributeError:
+        tempos = librosa.beat.tempo(y=y, sr=sr)
+    return float(tempos[0]) if getattr(tempos, "size", 0) else 0.0
+
+
 def analyze_energy_danceability(y, sr):
     """Infer normalized energy, danceability, acousticness, and movement."""
     try:
@@ -231,8 +275,7 @@ def analyze_energy_danceability(y, sr):
         mean_rms = float(np.mean(rms)) if rms.size else 0.0
         energy = max(0.0, min(1.0, mean_rms / 0.1))
 
-        tempos = librosa.beat.tempo(y=y, sr=sr)
-        tempo = float(tempos[0]) if tempos.size else 0.0
+        tempo = _get_tempo(y, sr)
 
         onset_env = librosa.onset.onset_strength(y=y, sr=sr)
         onset_density = float(np.mean(onset_env)) if onset_env.size else 0.0
@@ -242,7 +285,7 @@ def analyze_energy_danceability(y, sr):
 
         rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)
         rolloff_mean = float(np.mean(rolloff)) if rolloff.size else 0.0
-        acousticness = 1.0 - min(1.0, rolloff_mean / (sr / 2.0))
+        acousticness = 1.0 - min(1.0, rolloff_mean / (sr / 2.0)) if sr else 0.5
 
         spec_bw = librosa.feature.spectral_bandwidth(y=y, sr=sr)
         movement = float(np.mean(spec_bw)) if spec_bw.size else 0.0
@@ -251,7 +294,7 @@ def analyze_energy_danceability(y, sr):
         return {
             "energy": energy,
             "danceability": danceability,
-            "acousticness": acousticness,
+            "acousticness": max(0.0, min(1.0, acousticness)),
             "movement": movement
         }
     except Exception:
@@ -273,7 +316,7 @@ def analyze_audio_features(audio_path):
 
         # Brightness
         centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
-        brightness = float(np.mean(centroid))
+        brightness = float(np.mean(centroid)) if centroid.size else 0.0
 
         # Mood
         mood = infer_mood(bpm, brightness)
@@ -340,6 +383,9 @@ def generate_report(extracted_folders, output="ProjectData_Report.txt"):
 
         f.write("\nSync Licensing Tags:\n")
         for name, data in combined_json.items():
+            if not isinstance(data, dict):
+                f.write(f" - {name}: (skipped, not an object)\n")
+                continue
             tags = generate_sync_tags(data)
             f.write(f" - {name}: {', '.join(tags)}\n")
 
