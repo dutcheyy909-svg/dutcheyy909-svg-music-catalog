@@ -1,3 +1,8 @@
+import json
+from datetime import datetime
+from pathlib import Path
+
+
 def completeness_score(record):
 
     fields = [
@@ -122,4 +127,3 @@ def add_placement(record,
 
     record["past_placements"].append(placement)
     record["placement_count"] += 1
-
