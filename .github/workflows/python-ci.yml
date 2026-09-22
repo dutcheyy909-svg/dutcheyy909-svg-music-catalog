@@ -2,30 +2,45 @@ name: Python CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  build-and-test:
+  test:
+    name: Validate Python and generate catalogue
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Install dependencies
+        shell: bash
         run: |
           python -m pip install --upgrade pip
+
           if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
+            python -m pip install -r requirements.txt
           fi
-          pip install pytest flake8
+
+          python -m pip install pytest flake8
+
+      - name: Check Python syntax
+        run: |
+          python -m compileall -q scripts
 
       - name: Run tests
         run: |
@@ -38,3 +53,16 @@ jobs:
       - name: Lint for syntax/runtime errors
         run: |
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Run catalogue generator
+        run: |
+          python scripts/catalog_generator.py
+
+      - name: Confirm catalogue was generated
+        run: |
+          test -f CATALOG.md
+          echo "CATALOG.md generated successfully"
+
+      - name: Check generated catalogue is current
+        run: |
+          git diff --exit-code -- CATALOG.md
