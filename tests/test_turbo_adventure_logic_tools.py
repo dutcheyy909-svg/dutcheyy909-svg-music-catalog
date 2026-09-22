@@ -192,6 +192,21 @@ def test_write_latest_metadata_creates_missing_parent(metadata_dir, tmp_path):
     assert json.loads(output_path.read_text(encoding="utf-8"))["metadata_file"] == "track_a.json"
 
 
+def test_write_latest_metadata_cleans_up_temp_file_when_replace_fails(metadata_dir, tmp_path, monkeypatch):
+    output_path = tmp_path / "generated" / "latest_metadata.json"
+
+    def failing_replace(self, target):
+        raise OSError("replace failed")
+
+    monkeypatch.setattr(Path, "replace", failing_replace)
+
+    with pytest.raises(OSError, match="replace failed"):
+        extract_metadata.write_latest_metadata(output_path=output_path, metadata_dir=metadata_dir)
+
+    assert not output_path.exists()
+    assert list(output_path.parent.glob("*.tmp")) == []
+
+
 def test_generated_latest_outputs_are_not_retreated_as_source_tracks(metadata_dir):
     derived_output = metadata_dir / "custom_latest_snapshot.json"
     extract_metadata.write_latest_metadata(output_path=derived_output, metadata_dir=metadata_dir)
