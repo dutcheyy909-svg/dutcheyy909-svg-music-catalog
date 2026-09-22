@@ -1,5 +1,12 @@
 """Compatibility wrapper for the canonical project data analyzer module."""
 
+import sys
+from pathlib import Path
+
+MODULE_DIR = Path(__file__).resolve().parent
+if str(MODULE_DIR) not in sys.path:
+    sys.path.insert(0, str(MODULE_DIR))
+
 import projectdata_analyzer as _analyzer
 
 csv = _analyzer.csv

@@ -1,4 +1,5 @@
 import importlib
+import importlib.util
 import os
 import re
 import sys
@@ -14,6 +15,7 @@ from packaging.version import Version
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REQUIREMENTS_PATH = REPO_ROOT / "requirements.txt"
 TURBO_REQUIREMENTS_PATH = REPO_ROOT / "turbo-adventure" / "requirements.txt"
+EXTRACTOR_PATH = REPO_ROOT / "projectdata_extractor.py"
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 analyzer = importlib.import_module("projectdata_analyzer")
@@ -112,6 +114,38 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
                 reimported = importlib.import_module("projectdata_extractor")
 
                 self.assertIs(reimported.export_spotify_csv, reimported.export_spotify_features_csv)
+        finally:
+            os.chdir(original_cwd)
+            sys.path = original_sys_path
+            for name in ("projectdata_analyzer", "projectdata_extractor"):
+                sys.modules.pop(name, None)
+            for name, module in original_modules.items():
+                if module is not None:
+                    sys.modules[name] = module
+
+    def test_extractor_file_path_import_adds_module_dir_to_sys_path(self):
+        original_cwd = Path.cwd()
+        original_sys_path = sys.path[:]
+        original_modules = {
+            name: sys.modules.pop(name, None) for name in ("projectdata_analyzer", "projectdata_extractor")
+        }
+
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                os.chdir(temp_dir)
+                sys.path = [
+                    entry
+                    for entry in original_sys_path
+                    if Path(entry or temp_dir).resolve() != REPO_ROOT
+                ]
+
+                spec = importlib.util.spec_from_file_location("standalone_projectdata_extractor", EXTRACTOR_PATH)
+                self.assertIsNotNone(spec)
+                self.assertIsNotNone(spec.loader)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+
+                self.assertIs(module.export_spotify_csv, module.export_spotify_features_csv)
         finally:
             os.chdir(original_cwd)
             sys.path = original_sys_path
