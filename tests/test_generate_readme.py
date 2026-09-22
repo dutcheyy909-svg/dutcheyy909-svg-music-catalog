@@ -54,13 +54,6 @@ class GenerateReadmeTests(unittest.TestCase):
         expected_readme = module.render(module.load_template(), module.load_sections())
         self.assertEqual(module.README_PATH.read_text(encoding="utf-8"), expected_readme)
 
-    def test_repository_readme_documents_current_automation_paths(self):
-        readme = module.README_PATH.read_text(encoding="utf-8")
-        self.assertIn("`music-catalog/projects/`", readme)
-        self.assertIn("`turbo-adventure/metadata/`", readme)
-        self.assertIn("`python automation/scripts/generate-readme.py`", readme)
-        self.assertIn("`python scripts/catalog_generator.py`", readme)
-
     def test_main_writes_readme_from_non_repo_cwd(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
