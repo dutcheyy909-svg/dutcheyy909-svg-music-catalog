@@ -1,0 +1,20 @@
+sync-intelligence-database/
+
+data/
+├── master_sync_database.json
+├── master_sync_database.csv
+
+research/
+├── batch_01_us_sync.json
+├── batch_02_uk_europe_sync.json
+├── batch_03_production_libraries.json
+├── batch_04_trailer_companies.json
+
+schemas/
+├── schema_sync_intelligence.json
+├── schema_sync_intelligence.csv
+
+src/
+├── merge_batches.py
+├── export_csv.py
+├── validate_records.py

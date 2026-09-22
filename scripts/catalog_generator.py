@@ -31,4 +31,3 @@ with open("CATALOG.md", "w") as f:
         f.write(f"Keywords: {keywords}\n\n")
 
 print(f"Processed {len(tracks)} tracks")
-`
