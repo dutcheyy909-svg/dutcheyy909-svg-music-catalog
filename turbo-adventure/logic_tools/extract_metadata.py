@@ -14,6 +14,32 @@ GENERATED_METADATA_MARKER = "logic_tools.extract_metadata"
 TIMESTAMP_KEYS = ("updated_at", "updated", "created_at", "created")
 
 
+def has_valid_file_path(metadata: dict[str, Any]) -> bool:
+    file_path = metadata.get("file_path")
+    return isinstance(file_path, str) and bool(file_path.strip())
+
+
+def has_valid_files(metadata: dict[str, Any]) -> bool:
+    files = metadata.get("files")
+    if not isinstance(files, dict):
+        return False
+
+    wav = files.get("wav")
+    mp3 = files.get("mp3")
+    if not isinstance(wav, str) or not wav.strip():
+        return False
+    if not isinstance(mp3, str) or not mp3.strip():
+        return False
+
+    stems_folder = files.get("stems_folder")
+    if stems_folder is not None and (
+        not isinstance(stems_folder, str) or not stems_folder.strip()
+    ):
+        return False
+
+    return True
+
+
 def is_track_metadata(metadata: Any) -> bool:
     if not isinstance(metadata, dict):
         return False
@@ -21,7 +47,8 @@ def is_track_metadata(metadata: Any) -> bool:
         return False
     if not TRACK_REQUIRED_FIELDS.issubset(metadata):
         return False
-    return "file_path" in metadata or "files" in metadata
+
+    return has_valid_file_path(metadata) or has_valid_files(metadata)
 
 
 def load_track_metadata(metadata_dir: Path = METADATA_DIR) -> list[tuple[Path, dict[str, Any]]]:
@@ -71,7 +98,7 @@ def build_latest_metadata(metadata_dir: Path = METADATA_DIR) -> dict[str, Any]:
         raise ValueError(
             "No valid track metadata files found in "
             f"{metadata_dir}; expected JSON objects with title, composer, bpm, "
-            "key, genre, and either file_path or files"
+            "key, genre, and either a non-empty file_path or files with wav/mp3 paths"
         )
 
     track_details = [
