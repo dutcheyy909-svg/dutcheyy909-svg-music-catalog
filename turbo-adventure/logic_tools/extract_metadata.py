@@ -48,7 +48,7 @@ def has_valid_required_fields(metadata: dict[str, Any]) -> bool:
             return False
 
     bpm = metadata.get("bpm")
-    if isinstance(bpm, bool) or not isinstance(bpm, (int, float)) or bpm <= 0:
+    if isinstance(bpm, bool) or not isinstance(bpm, (int, float)) or not 0 < bpm < float("inf"):
         return False
 
     return True
