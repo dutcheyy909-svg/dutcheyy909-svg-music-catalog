@@ -54,6 +54,18 @@ class GenerateReadmeTests(unittest.TestCase):
         expected_readme = module.render(module.load_template(), module.load_sections())
         self.assertEqual(module.README_PATH.read_text(encoding="utf-8"), expected_readme)
 
+    def test_load_sections_joins_list_values_into_multiline_strings(self):
+        sections = module.load_sections()
+        self.assertEqual(
+            sections["repository_layout"],
+            "- `music-catalog/projects/` contains source project metadata schemas, fixtures, and dashboard tooling.\n"
+            "- `turbo-adventure/metadata/` stores source track metadata; helper scripts may also emit derived metadata files alongside it.\n"
+            "- `releases/` and `sync_cues/` provide example payloads and JSON schemas for release and sync licensing data.\n"
+            "- `automation/` contains the README template, structured README data, and the generator script.\n"
+            "- `scripts/`, `projectdata_analyzer.py`, and `tests/` contain repository automation plus regression coverage.\n"
+            "- Generated files such as `README.md` and `catalog.json` should be refreshed from their scripts instead of edited by hand."
+        )
+
     def test_main_writes_readme_from_non_repo_cwd(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
