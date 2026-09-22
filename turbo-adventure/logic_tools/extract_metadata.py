@@ -61,6 +61,10 @@ def parse_metadata_timestamp(metadata: dict[str, Any]) -> datetime:
     return datetime.min.replace(tzinfo=timezone.utc)
 
 
+def metadata_signature(metadata: dict[str, Any]) -> str:
+    return json.dumps(metadata, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+
+
 def build_latest_metadata(metadata_dir: Path = METADATA_DIR) -> dict[str, Any]:
     tracks = load_track_metadata(metadata_dir)
     if not tracks:
@@ -74,7 +78,13 @@ def build_latest_metadata(metadata_dir: Path = METADATA_DIR) -> dict[str, Any]:
     latest_candidates = [
         track for track in tracks if parse_metadata_timestamp(track[1]) == latest_timestamp
     ]
-    latest_file, latest_metadata = min(latest_candidates, key=lambda track: track[0].name)
+    strongest_signature = max(metadata_signature(metadata) for _, metadata in latest_candidates)
+    strongest_candidates = [
+        track
+        for track in latest_candidates
+        if metadata_signature(track[1]) == strongest_signature
+    ]
+    latest_file, latest_metadata = min(strongest_candidates, key=lambda track: track[0].name)
 
     result = dict(latest_metadata)
     result["metadata_file"] = latest_file.name
