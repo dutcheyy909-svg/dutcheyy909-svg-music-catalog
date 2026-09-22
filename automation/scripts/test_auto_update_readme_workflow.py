@@ -32,7 +32,7 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
             and re.search(r"(?m)^on:\s*(?:$|#)", workflow_text)
         ):
             workflow = dict(workflow)
-            workflow["on"] = workflow[True]
+            workflow["on"] = workflow.pop(True)
         return workflow
 
     def _get_push_config(self):
