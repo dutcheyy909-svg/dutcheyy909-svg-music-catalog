@@ -70,7 +70,6 @@ def test_parse_metadata_timestamp_supports_supported_keys_and_z_suffix():
     assert fallback.isoformat() == "2026-09-20T00:00:00+00:00"
 
 
-
 def test_parse_metadata_timestamp_uses_newest_supported_timestamp():
     parsed = extract_metadata.parse_metadata_timestamp(
         {
@@ -87,6 +86,26 @@ def test_load_track_metadata_ignores_non_track_json_objects(metadata_dir):
 
     assert [metadata_file.name for metadata_file, _ in tracks] == ["track_a.json", "track_b.json"]
 
+
+def test_is_track_metadata_rejects_invalid_file_locations():
+    base = {
+        "title": "Track A",
+        "composer": "Duncan",
+        "bpm": 100,
+        "key": "C Major",
+        "genre": "Pop",
+    }
+    invalid = [
+        {**base, "file_path": None},
+        {**base, "files": []},
+        {**base, "bpm": "100", "file_path": "tracks/track_a.wav"},
+        {**base, "files": {"wav": "tracks/track_a.wav"}},
+    ]
+    valid = {**base, "files": {"wav": "tracks/track_a.wav", "mp3": "tracks/track_a.mp3"}}
+
+    for payload in invalid:
+        assert not extract_metadata.is_track_metadata(payload)
+    assert extract_metadata.is_track_metadata(valid)
 
 
 def test_build_latest_metadata_uses_metadata_tiebreaker_instead_of_filename(tmp_path):
@@ -116,8 +135,6 @@ def test_build_latest_metadata_uses_metadata_tiebreaker_instead_of_filename(tmp_
 
     assert latest["title"] == "Zeta"
     assert latest["metadata_file"] == "alpha.json"
-
-
 
 
 def test_build_latest_metadata_uses_filename_only_for_exact_metadata_ties(tmp_path):
@@ -150,7 +167,6 @@ def test_write_latest_metadata_serializes_metadata_file(metadata_dir, tmp_path):
     assert written["_generated_by"] == extract_metadata.GENERATED_METADATA_MARKER
     assert written["title"] == "Track A"
     assert output_path.read_text(encoding="utf-8").endswith("\n")
-
 
 
 def test_generated_latest_outputs_are_not_retreated_as_source_tracks(metadata_dir):

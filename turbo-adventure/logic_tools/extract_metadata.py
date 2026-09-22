@@ -14,12 +14,40 @@ GENERATED_METADATA_MARKER = "logic_tools.extract_metadata"
 TIMESTAMP_KEYS = ("updated_at", "updated", "created_at", "created")
 
 
+def is_nonempty_string(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def is_valid_files_shape(files: Any) -> bool:
+    if not isinstance(files, dict) or not files:
+        return False
+    if not {"wav", "mp3"}.issubset(files):
+        return False
+    for key, value in files.items():
+        if not isinstance(key, str):
+            return False
+        if not is_nonempty_string(value):
+            return False
+    return True
+
+
 def is_track_metadata(metadata: Any) -> bool:
     if not isinstance(metadata, dict):
         return False
     if metadata.get("_generated_by") == GENERATED_METADATA_MARKER:
         return False
     if not TRACK_REQUIRED_FIELDS.issubset(metadata):
+        return False
+    if not all(is_nonempty_string(metadata.get(field)) for field in ("title", "composer", "key", "genre")):
+        return False
+
+    bpm = metadata.get("bpm")
+    if isinstance(bpm, bool) or not isinstance(bpm, (int, float)) or bpm <= 0:
+        return False
+
+    if "file_path" in metadata and not is_nonempty_string(metadata["file_path"]):
+        return False
+    if "files" in metadata and not is_valid_files_shape(metadata["files"]):
         return False
     return "file_path" in metadata or "files" in metadata
 
@@ -80,20 +108,13 @@ def build_latest_metadata(metadata_dir: Path = METADATA_DIR) -> dict[str, Any]:
     ]
     latest_timestamp = max(timestamp for _, _, timestamp, _ in track_details)
     latest_candidates = [
-        track_detail
-        for track_detail in track_details
-        if track_detail[2] == latest_timestamp
+        track_detail for track_detail in track_details if track_detail[2] == latest_timestamp
     ]
     strongest_signature = max(signature for _, _, _, signature in latest_candidates)
     strongest_candidates = [
-        track_detail
-        for track_detail in latest_candidates
-        if track_detail[3] == strongest_signature
+        track_detail for track_detail in latest_candidates if track_detail[3] == strongest_signature
     ]
-    latest_file, latest_metadata, _, _ = min(
-        strongest_candidates,
-        key=lambda track_detail: track_detail[0].name,
-    )
+    latest_file, latest_metadata, _, _ = min(strongest_candidates, key=lambda track_detail: track_detail[0].name)
 
     result = dict(latest_metadata)
     result["metadata_file"] = latest_file.name
