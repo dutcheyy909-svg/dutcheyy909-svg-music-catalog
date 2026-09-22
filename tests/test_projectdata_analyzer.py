@@ -146,6 +146,7 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
                 spec.loader.exec_module(module)
 
                 self.assertIs(module.export_spotify_csv, module.export_spotify_features_csv)
+                self.assertNotIn(str(REPO_ROOT), sys.path)
         finally:
             os.chdir(original_cwd)
             sys.path = original_sys_path

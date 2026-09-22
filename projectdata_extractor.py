@@ -4,10 +4,17 @@ import sys
 from pathlib import Path
 
 MODULE_DIR = Path(__file__).resolve().parent
-if str(MODULE_DIR) not in sys.path:
-    sys.path.insert(0, str(MODULE_DIR))
+module_dir_str = str(MODULE_DIR)
+added_module_dir = False
+if module_dir_str not in sys.path:
+    sys.path.insert(0, module_dir_str)
+    added_module_dir = True
 
-import projectdata_analyzer as _analyzer
+try:
+    import projectdata_analyzer as _analyzer
+finally:
+    if added_module_dir:
+        sys.path.remove(module_dir_str)
 
 csv = _analyzer.csv
 defaultdict = _analyzer.defaultdict
