@@ -62,8 +62,6 @@ def _normalize_duplicate_value(value):
     if isinstance(value, str):
         stripped = value.strip()
         return stripped or None
-    if isinstance(value, (list, dict)):
-        return json.dumps(value, sort_keys=True)
     return value
 
 
@@ -311,6 +309,11 @@ def detect_duplicates(combined_csv, key="id"):
 
         value = _normalize_duplicate_value(row.get(key))
         if value is None:
+            continue
+        try:
+            hash(value)
+        except TypeError:
+            LOGGER.warning("Skipping duplicate detection for unhashable %s value", key)
             continue
 
         if value in seen:

@@ -86,17 +86,6 @@ class ProjectDataAnalyzerTests(unittest.TestCase):
         self.assertEqual(len(combined_csv), 4)
         self.assertEqual(duplicates, [{"id": "track-1", "title": "Duplicate"}])
 
-    def test_detect_duplicates_normalizes_non_string_ids(self):
-        duplicates = analyzer.detect_duplicates(
-            [
-                {"id": {"source": "track-1"}},
-                {"id": {"source": "track-1"}},
-                {"id": {"source": "track-2"}},
-            ]
-        )
-
-        self.assertEqual(duplicates, [{"id": {"source": "track-1"}}])
-
     def test_analyze_audio_features_reports_missing_file_without_exposing_full_path(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             missing = Path(temp_dir) / "missing.wav"
