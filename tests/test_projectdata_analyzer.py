@@ -1,5 +1,4 @@
 import importlib
-import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,16 +14,20 @@ extractor = importlib.import_module("projectdata_extractor")
 
 class ProjectDataAnalyzerTests(unittest.TestCase):
     def test_root_requirements_cover_runtime_and_test_dependencies(self):
-        requirement_names = set()
-        for line in REQUIREMENTS_PATH.read_text(encoding="utf-8").splitlines():
-            stripped = line.split("#", 1)[0].strip()
-            if not stripped or stripped.startswith("-"):
-                continue
-            match = re.match(r"[A-Za-z0-9_.-]+", stripped)
-            self.assertIsNotNone(match)
-            requirement_names.add(match.group(0))
+        requirement_lines = {
+            line.split("#", 1)[0].strip()
+            for line in REQUIREMENTS_PATH.read_text(encoding="utf-8").splitlines()
+            if line.split("#", 1)[0].strip() and not line.split("#", 1)[0].strip().startswith("-")
+        }
 
-        self.assertTrue({"librosa", "numpy", "pytest", "PyYAML"}.issubset(requirement_names))
+        self.assertTrue(
+            {
+                "librosa==0.10.0",
+                "numpy>=1.26,<2",
+                "pytest>=8,<9",
+                "PyYAML>=6,<7",
+            }.issubset(requirement_lines)
+        )
 
     def test_extractor_is_compatibility_wrapper_for_analyzer(self):
         self.assertTrue(set(analyzer.__all__).issubset(extractor.__all__))
