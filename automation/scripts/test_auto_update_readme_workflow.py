@@ -26,7 +26,13 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         return yaml.load(workflow_text, Loader=WorkflowLoader)
 
     def _get_push_config(self):
-        return self._get_workflow()["on"]["push"]
+        workflow_on = self._get_workflow()["on"]
+        self.assertIsInstance(workflow_on, dict, 'Workflow "on" section must be a mapping')
+        self.assertIn("push", workflow_on, 'Workflow "on" section must define a push trigger')
+
+        push_config = workflow_on["push"]
+        self.assertIsInstance(push_config, dict, 'Workflow "push" trigger must be a mapping')
+        return push_config
 
     def _get_steps(self):
         return self._get_workflow()["jobs"]["update-readme"]["steps"]
