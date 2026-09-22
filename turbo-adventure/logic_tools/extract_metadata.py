@@ -58,7 +58,7 @@ def parse_metadata_timestamp(metadata: dict[str, Any]) -> datetime:
     return datetime.min.replace(tzinfo=timezone.utc)
 
 
-def latest_track_sort_key(track: tuple[Path, dict[str, Any]]) -> tuple[datetime, str, str]:
+def latest_track_sort_key(track: tuple[Path, dict[str, Any]]) -> tuple[datetime, str, str, str]:
     metadata = track[1]
     return (
         parse_metadata_timestamp(metadata),
