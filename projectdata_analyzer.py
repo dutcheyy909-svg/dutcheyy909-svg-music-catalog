@@ -98,7 +98,7 @@ def generate_sync_tags(metadata, audio_features=None):
                 tags.append("mid-tempo")
             else:
                 tags.append("fast")
-        except:
+        except Exception:
             pass
 
     # Audio-analysis tags
@@ -116,6 +116,7 @@ def generate_sync_tags(metadata, audio_features=None):
                 tags.append("fast")
 
     return list(set(tags))
+
 
 def analyze_valence(y, sr):
     """
@@ -213,7 +214,7 @@ def combine_all_metadata(extracted_folders):
                 with open(file) as f:
                     data = json.load(f)
                 combined_json[file.stem] = data
-            except:
+            except Exception:
                 pass
 
         # CSV merge
@@ -226,7 +227,7 @@ def combine_all_metadata(extracted_folders):
                     header = rows[0]
                     for row in rows[1:]:
                         combined_csv.append(dict(zip(header, row)))
-            except:
+            except Exception:
                 pass
 
     return combined_json, combined_csv
@@ -293,7 +294,6 @@ def analyze_audio_features(audio_path):
         return {"error": str(e)}
 
 
-
 def infer_mood(bpm, brightness):
     if bpm > 120 and brightness > 3000:
         return "energetic"
@@ -333,8 +333,12 @@ def generate_report(extracted_folders, output="ProjectData_Report.txt"):
         for name, data in combined_json.items():
             tags = generate_sync_tags(data)
             f.write(f" - {name}: {', '.join(tags)}\n")
+
+
 def export_songtradr_metadata(track_name, metadata, audio_features=None):
     """Return Songtradr-ready metadata dict."""
+    metadata = metadata or {}
+    audio_features = audio_features or {}
     tags = generate_sync_tags(metadata, audio_features)
 
     return {
@@ -352,8 +356,12 @@ def export_songtradr_metadata(track_name, metadata, audio_features=None):
         "publisher": metadata.get("publisher", ""),
         "pro": metadata.get("pro_affiliation", "")
     }
+
+
 def export_audiosparx_metadata(track_name, metadata, audio_features=None):
     """Return AudioSparx-ready metadata dict."""
+    metadata = metadata or {}
+    audio_features = audio_features or {}
     tags = generate_sync_tags(metadata, audio_features)
 
     return {
@@ -371,25 +379,12 @@ def export_audiosparx_metadata(track_name, metadata, audio_features=None):
         "StemsAvailable": metadata.get("stems_available", True),
         "VersionsAvailable": metadata.get("versions_available", [])
     }
-def export_ringo_metadata(track_name, metadata, audio_features=None):
-    """Return Ringo-ready metadata dict."""
-    tags = generate_sync_tags(metadata, audio_features)
 
-    return {
-        "name": metadata.get("title", track_name),
-        "bpm": audio_features.get("bpm") if audio_features else metadata.get("bpm"),
-        "key": metadata.get("key", ""),
-        "energy": metadata.get("energy_level", ""),
-        "mood": audio_features.get("mood") if audio_features else metadata.get("mood", ""),
-        "genre": metadata.get("genre", ""),
-        "tags": tags,
-        "recommended_scenes": metadata.get("recommended_scenes", []),
-        "rights": metadata.get("usage_rights", "100% owned"),
-        "composer": metadata.get("composer", ""),
-        "publisher": metadata.get("publisher", "")
-    }
+
 def export_ringo_metadata(track_name, metadata, audio_features=None):
     """Return Ringo-ready metadata dict."""
+    metadata = metadata or {}
+    audio_features = audio_features or {}
     tags = generate_sync_tags(metadata, audio_features)
 
     return {
