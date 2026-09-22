@@ -18,16 +18,25 @@ spec.loader.exec_module(module)
 
 
 class CatalogGeneratorTests(unittest.TestCase):
-    def test_build_catalog_uses_repo_relative_sorted_paths_and_skips_output_dirs(self):
+    def test_build_catalog_uses_repo_relative_sorted_paths_and_skips_generated_dirs(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             repo_root = Path(temp_dir)
-            (repo_root / "music").mkdir()
+            (repo_root / "alpha").mkdir()
             (repo_root / "Output").mkdir()
             (repo_root / "Generated").mkdir()
-            (repo_root / "music" / "z-track.wav").write_bytes(b"")
-            (repo_root / "music" / "a-track.MP3").write_bytes(b"")
+            (repo_root / "build").mkdir()
+            (repo_root / "Dist").mkdir()
+            (repo_root / "node_modules").mkdir()
+            (repo_root / "__PYCACHE__").mkdir()
+            (repo_root / "zeta").mkdir()
+            (repo_root / "alpha" / "a-track.MP3").write_bytes(b"")
+            (repo_root / "zeta" / "z-track.wav").write_bytes(b"")
             (repo_root / "Output" / "skip.wav").write_bytes(b"")
             (repo_root / "Generated" / "skip.mp3").write_bytes(b"")
+            (repo_root / "build" / "skip.wav").write_bytes(b"")
+            (repo_root / "Dist" / "skip.wav").write_bytes(b"")
+            (repo_root / "node_modules" / "skip.wav").write_bytes(b"")
+            (repo_root / "__PYCACHE__" / "skip.wav").write_bytes(b"")
             (repo_root / "catalog.json").write_text("[]", encoding="utf-8")
 
             catalog = module.build_catalog(repo_root)
@@ -35,8 +44,8 @@ class CatalogGeneratorTests(unittest.TestCase):
             self.assertEqual(
                 catalog,
                 [
-                    {"filename": "a-track.MP3", "path": "music/a-track.MP3"},
-                    {"filename": "z-track.wav", "path": "music/z-track.wav"},
+                    {"filename": "a-track.MP3", "path": "alpha/a-track.MP3"},
+                    {"filename": "z-track.wav", "path": "zeta/z-track.wav"},
                 ],
             )
 
@@ -67,6 +76,17 @@ class CatalogGeneratorTests(unittest.TestCase):
                 json.loads(output_path.read_text(encoding="utf-8")),
                 [{"filename": "song.wav", "path": "nested/song.wav"}],
             )
+
+    def test_write_catalog_emits_valid_json_with_trailing_newline(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = Path(temp_dir) / "catalog.json"
+            catalog = [{"filename": "song.wav", "path": "nested/song.wav"}]
+
+            module.write_catalog(catalog, output_path)
+
+            written = output_path.read_text(encoding="utf-8")
+            self.assertTrue(written.endswith("\n"))
+            self.assertEqual(json.loads(written), catalog)
 
 
 if __name__ == "__main__":
