@@ -89,35 +89,111 @@ def test_load_track_metadata_ignores_non_track_json_objects(metadata_dir):
 
 
 def test_load_track_metadata_rejects_invalid_present_source_fields(tmp_path):
-    base = {
-        "title": "Track",
-        "composer": "Duncan",
-        "bpm": 120,
-        "key": "A Minor",
-        "genre": "Pop",
-    }
-    (tmp_path / "invalid_file_path.json").write_text(
-        json.dumps(
-            {
-                **base,
-                "file_path": None,
-                "files": {"wav": "tracks/track.wav", "mp3": "tracks/track.mp3"},
-            }
-        ),
-        encoding="utf-8",
-    )
-    (tmp_path / "invalid_files.json").write_text(
-        json.dumps({**base, "file_path": "tracks/track.wav", "files": []}),
-        encoding="utf-8",
-    )
-    (tmp_path / "valid.json").write_text(
-        json.dumps({**base, "file_path": "tracks/valid.wav"}),
-        encoding="utf-8",
-    )
+    for name, payload in {
+        "valid.json": {
+            "title": "Valid Track",
+            "composer": "Duncan",
+            "bpm": 128,
+            "key": "E Minor",
+            "genre": "Electronic",
+            "file_path": "tracks/valid.wav",
+        },
+        "invalid_files_shape.json": {
+            "title": "Invalid Files Shape",
+            "composer": "Duncan",
+            "bpm": 129,
+            "key": "F Minor",
+            "genre": "Electronic",
+            "file_path": "tracks/invalid-files.wav",
+            "files": [],
+        },
+        "invalid_file_path_type.json": {
+            "title": "Invalid File Path Type",
+            "composer": "Duncan",
+            "bpm": 130,
+            "key": "G Minor",
+            "genre": "Electronic",
+            "file_path": None,
+            "files": {
+                "wav": "tracks/invalid-path.wav",
+                "mp3": "tracks/invalid-path.mp3",
+            },
+        },
+        "invalid_stems_folder.json": {
+            "title": "Invalid Stems Folder",
+            "composer": "Duncan",
+            "bpm": 131,
+            "key": "A Minor",
+            "genre": "Electronic",
+            "files": {
+                "wav": "tracks/invalid-stems.wav",
+                "mp3": "tracks/invalid-stems.mp3",
+                "stems_folder": None,
+            },
+        },
+    }.items():
+        (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
 
     tracks = extract_metadata.load_track_metadata(tmp_path)
 
     assert [metadata_file.name for metadata_file, _ in tracks] == ["valid.json"]
+
+
+def test_load_track_metadata_rejects_invalid_required_field_types(tmp_path):
+    (tmp_path / "invalid_bpm.json").write_text(
+        json.dumps(
+            {
+                "title": "Invalid BPM",
+                "composer": "Duncan",
+                "bpm": True,
+                "key": "A Minor",
+                "genre": "Electronic",
+                "file_path": "tracks/invalid-bpm.wav",
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "nan_bpm.json").write_text(
+        json.dumps(
+            {
+                "title": "NaN BPM",
+                "composer": "Duncan",
+                "bpm": float("nan"),
+                "key": "A Minor",
+                "genre": "Electronic",
+                "file_path": "tracks/nan-bpm.wav",
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "infinite_bpm.json").write_text(
+        json.dumps(
+            {
+                "title": "Infinite BPM",
+                "composer": "Duncan",
+                "bpm": float("inf"),
+                "key": "A Minor",
+                "genre": "Electronic",
+                "file_path": "tracks/infinite-bpm.wav",
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "invalid_title.json").write_text(
+        json.dumps(
+            {
+                "title": "   ",
+                "composer": "Duncan",
+                "bpm": 120,
+                "key": "A Minor",
+                "genre": "Electronic",
+                "file_path": "tracks/invalid-title.wav",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert extract_metadata.load_track_metadata(tmp_path) == []
 
 
 

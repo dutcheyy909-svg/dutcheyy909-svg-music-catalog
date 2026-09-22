@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,7 @@ METADATA_DIR = ROOT_DIR / "metadata"
 LATEST_METADATA_PATH = METADATA_DIR / "latest_metadata.json"
 TRACK_FILES_TO_SKIP = {"latest_metadata.json", "sync_metadata.json", "track.schema.json"}
 TRACK_REQUIRED_FIELDS = {"title", "composer", "bpm", "key", "genre"}
+TRACK_REQUIRED_STRING_FIELDS = ("title", "composer", "key", "genre")
 GENERATED_METADATA_MARKER = "logic_tools.extract_metadata"
 TIMESTAMP_KEYS = ("updated_at", "updated", "created_at", "created")
 
@@ -32,12 +34,39 @@ def has_valid_files(metadata: dict[str, Any]) -> bool:
         return False
 
     stems_folder = files.get("stems_folder")
-    if stems_folder is not None and (
+    if "stems_folder" in files and (
         not isinstance(stems_folder, str) or not stems_folder.strip()
     ):
         return False
 
     return True
+
+
+def has_valid_required_fields(metadata: dict[str, Any]) -> bool:
+    for field in TRACK_REQUIRED_STRING_FIELDS:
+        value = metadata.get(field)
+        if not isinstance(value, str) or not value.strip():
+            return False
+
+    bpm = metadata.get("bpm")
+    if (
+        isinstance(bpm, bool)
+        or not isinstance(bpm, (int, float))
+        or not math.isfinite(bpm)
+        or bpm <= 0
+    ):
+        return False
+
+    return True
+
+
+def has_invalid_present_source_fields(metadata: dict[str, Any]) -> bool:
+    if "file_path" in metadata and not has_valid_file_path(metadata):
+        return True
+    if "files" in metadata and not has_valid_files(metadata):
+        return True
+
+    return False
 
 
 def is_track_metadata(metadata: Any) -> bool:
@@ -47,17 +76,12 @@ def is_track_metadata(metadata: Any) -> bool:
         return False
     if not TRACK_REQUIRED_FIELDS.issubset(metadata):
         return False
-    has_file_path = "file_path" in metadata
-    has_files = "files" in metadata
-    valid_file_path = has_valid_file_path(metadata)
-    valid_files = has_valid_files(metadata)
-
-    if has_file_path and not valid_file_path:
+    if not has_valid_required_fields(metadata):
         return False
-    if has_files and not valid_files:
+    if has_invalid_present_source_fields(metadata):
         return False
 
-    return (has_file_path and valid_file_path) or (has_files and valid_files)
+    return has_valid_file_path(metadata) or has_valid_files(metadata)
 
 
 def load_track_metadata(metadata_dir: Path = METADATA_DIR) -> list[tuple[Path, dict[str, Any]]]:
