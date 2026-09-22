@@ -1,9 +1,8 @@
-name: Auto‑Update README
+name: Auto-Update README
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   update-readme:
@@ -11,18 +10,29 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install -r automation/scripts/requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f automation/scripts/requirements.txt ]; then
+            pip install -r automation/scripts/requirements.txt
+          else
+            echo "No requirements file found; skipping dependency install."
+          fi
 
       - name: Generate README
-        run: python automation/scripts/generate-readme.py
+        run: |
+          if [ -f automation/scripts/generate-readme.py ]; then
+            python automation/scripts/generate-readme.py
+          else
+            echo "README generator not found; skipping README update."
+          fi
 
       - name: Commit updated README
         run: |
