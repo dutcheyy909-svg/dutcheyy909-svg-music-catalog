@@ -1,4 +1,5 @@
 import importlib
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,6 +9,8 @@ import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REQUIREMENTS_PATH = REPO_ROOT / "requirements.txt"
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 analyzer = importlib.import_module("projectdata_analyzer")
 extractor = importlib.import_module("projectdata_extractor")
 
