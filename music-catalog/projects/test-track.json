@@ -1,143 +1,15 @@
 {
-  "schema_version": "1.0",
-  "track": {
-    "title": "Redline City",
-    "artist": "DUTCHEYY",
-    "composer": "DUTCHEYY",
-    "publisher": "DUTCHEYY RECORDS",
-    "catalogue_number": null,
-    "isrc": null,
-    "pro": null,
-    "explicit_content": false,
-    "vocal_type": "Instrumental"
-  },
-  "technical": {
-    "bpm": null,
-    "key": null,
-    "time_signature": null,
-    "duration": null,
-    "sample_rate_hz": null,
-    "bit_depth": null
-  },
-  "classification": {
-    "genre": "Electronic",
-    "subgenres": [
-      "Cyberpunk EDM",
-      "Electro House",
-      "Synthwave Hybrid"
-    ],
-    "moods": [
-      "Energetic",
-      "Aggressive",
-      "Powerful",
-      "Futuristic",
-      "Intense",
-      "Driving",
-      "Dark",
-      "Confident",
-      "Adrenaline-Fuelled",
-      "Exciting",
-      "Determined",
-      "Cinematic"
-    ],
-    "keywords": [
-      "redline",
-      "city",
-      "cyberpunk",
-      "neon",
-      "racing",
-      "speed",
-      "chase",
-      "pursuit",
-      "urban",
-      "metropolis",
-      "futuristic",
-      "technology",
-      "electronic",
-      "EDM",
-      "synthwave",
-      "electro",
-      "high energy",
-      "adrenaline",
-      "motion",
-      "driving",
-      "action",
-      "underground",
-      "nightlife",
-      "automotive",
-      "supercar",
-      "gaming",
-      "esports",
-      "modern",
-      "digital",
-      "dystopian",
-      "bass",
-      "aggressive",
-      "industrial",
-      "innovation",
-      "fast lane",
-      "momentum",
-      "velocity",
-      "futuristic city",
-      "midnight drive",
-      "electric"
-    ]
-  },
-  "descriptions": {
-    "short": "A high-octane electronic anthem driven by aggressive synths, pounding drums and futuristic energy, capturing the thrill of racing through a neon-lit metropolis at maximum speed.",
-    "long": "Redline City is a powerful, cinematic EDM production that blends driving basslines, sharp electronic percussion and futuristic synth textures into an adrenaline-fuelled experience. Evoking neon skylines, midnight street races, advanced technology and cyberpunk cityscapes, the track is suited to action sports, automotive campaigns, gaming content, trailers, esports, technology advertising and urban lifestyle productions.",
-    "one_line_pitch": "A relentless cyberpunk-inspired EDM track built for speed, neon skylines and maximum adrenaline."
-  },
-  "instrumentation": [
-    "Synth Leads",
-    "Analog Bass",
-    "Electronic Drums",
-    "Arpeggiated Synths",
-    "FX Impacts",
-    "Risers",
-    "Atmospheric Pads",
-    "Sub Bass",
-    "Percussion Loops"
+  "project_id": "test-track",
+  "title": "Test Track",
+  "project_type": "song",
+  "status": "idea",
+  "primary_artist": "DUTCHEYY",
+  "genre": [
+    "EDM"
   ],
-  "suggested_uses": [
-    "Automotive Commercials",
-    "Electric Vehicle Campaigns",
-    "Technology Products",
-    "Gaming Hardware",
-    "Chase Sequences",
-    "Urban Action Scenes",
-    "Futuristic City Montages",
-    "Crime and Thriller Content",
-    "Racing Games",
-    "Cyberpunk Worlds",
-    "Esports Broadcasts",
-    "Competitive Gameplay",
-    "YouTube Intros",
-    "Action Reels",
-    "Lifestyle Content",
-    "Sports Highlights"
+  "bpm": 128,
+  "mood": [
+    "Energetic"
   ],
-  "sync_search_tags": {
-    "primary": [
-      "EDM",
-      "Electronic",
-      "Cyberpunk",
-      "Racing",
-      "Futuristic",
-      "Action"
-    ],
-    "secondary": [
-      "Neon Lights",
-      "Fast Cars",
-      "Urban Nights",
-      "Technology",
-      "Energy",
-      "Speed",
-      "Motion",
-      "Gaming",
-      "Adrenaline",
-      "Chase"
-    ]
-  },
-  "notes": "Technical fields are null until confirmed from the Logic Pro project or final audio export."
+  "created_at": "2026-09-02T18:23:51Z"
 }
