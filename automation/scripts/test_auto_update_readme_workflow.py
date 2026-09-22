@@ -56,25 +56,28 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
         self.assertIsInstance(push_config, dict, 'Workflow "push" trigger must be a mapping')
         return push_config
 
-    def _get_steps(self):
+    def _get_update_readme_job(self):
         jobs = self._get_workflow().get("jobs")
         self.assertIsInstance(jobs, dict, 'Workflow must define a "jobs" mapping')
         self.assertIn("update-readme", jobs, 'Workflow "jobs" must define "update-readme"')
 
         update_readme_job = jobs["update-readme"]
         self.assertIsInstance(update_readme_job, dict, 'Workflow job "update-readme" must be a mapping')
-        steps = update_readme_job.get("steps")
+        return update_readme_job
+
+    def _get_step_list(self):
+        steps = self._get_update_readme_job().get("steps")
         self.assertIsInstance(steps, list, 'Workflow job "update-readme" must define a steps list')
         return steps
 
     def _find_step_by_uses(self, action):
-        for step in self._get_steps():
+        for step in self._get_step_list():
             if step.get("uses") == action:
                 return step
         self.fail(f"Expected step using {action!r}")
 
     def _find_step_containing_run(self, text):
-        for step in self._get_steps():
+        for step in self._get_step_list():
             if text in step.get("run", ""):
                 return step
         self.fail(f"Expected step containing run text {text!r}")
@@ -85,6 +88,9 @@ class AutoUpdateReadmeWorkflowTests(unittest.TestCase):
     def test_workflow_triggers_on_push_to_main(self):
         self.assertEqual(self._get_workflow().get("name"), "Auto-Update README")
         self.assertEqual(self._get_push_config().get("branches"), ["main"])
+
+    def test_workflow_runs_on_ubuntu_latest(self):
+        self.assertEqual(self._get_update_readme_job().get("runs-on"), "ubuntu-latest")
 
     def test_workflow_sets_up_python_and_generates_readme(self):
         self.assertEqual(self._find_step_by_uses("actions/checkout@v5").get("name"), "Checkout repository")
