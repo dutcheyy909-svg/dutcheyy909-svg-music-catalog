@@ -17,6 +17,21 @@ spec.loader.exec_module(module)
 
 
 class GenerateReadmeTests(unittest.TestCase):
+    def test_generator_paths_are_resolved_from_script_location(self):
+        script_dir = SCRIPT_PATH.parent
+        automation_dir = script_dir.parent
+        repo_root = automation_dir.parent
+        self.assertEqual(module.SCRIPT_DIR, script_dir)
+        self.assertEqual(module.AUTOMATION_DIR, automation_dir)
+        self.assertEqual(module.REPO_ROOT, repo_root)
+        self.assertEqual(module.TEMPLATE_PATH, automation_dir / "templates" / "readme-template.md")
+        self.assertEqual(module.DATA_PATH, automation_dir / "templates" / "readme-data.json")
+        self.assertEqual(module.README_PATH, repo_root / "README.md")
+
+    def test_repository_has_single_canonical_readme_generator(self):
+        generator_paths = sorted((REPO_ROOT / "automation").rglob("generate-readme.py"))
+        self.assertEqual(generator_paths, [SCRIPT_PATH])
+
     def test_template_matches_canonical_sections(self):
         self.assertEqual(
             module.load_template(),
@@ -84,6 +99,30 @@ class GenerateReadmeTests(unittest.TestCase):
                 module.README_PATH = original_output
 
             self.assertEqual(output_path.read_text(encoding="utf-8"), "# Repo\n\nGenerated from template\n")
+
+    def test_cli_uses_canonical_script_paths_even_with_shadow_structure_in_cwd(self):
+        expected_readme = module.render(module.load_template(), module.load_sections())
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            shadow_template = temp_path / "automation" / "templates"
+            shadow_template.mkdir(parents=True)
+            (shadow_template / "readme-template.md").write_text("# SHADOW\n{{project_name}}\n", encoding="utf-8")
+            (shadow_template / "readme-data.json").write_text('{"project_name": "shadow"}', encoding="utf-8")
+            output_path = temp_path / "README.md"
+            output_path.write_text("# stale\n", encoding="utf-8")
+            self.assertNotEqual(output_path.read_text(encoding="utf-8"), expected_readme)
+
+            original_output = module.README_PATH
+            original_cwd = Path.cwd()
+            try:
+                module.README_PATH = output_path
+                os.chdir(temp_path)
+                module.main()
+            finally:
+                os.chdir(original_cwd)
+                module.README_PATH = original_output
+
+            self.assertEqual(output_path.read_text(encoding="utf-8"), expected_readme)
 
 
 if __name__ == "__main__":
