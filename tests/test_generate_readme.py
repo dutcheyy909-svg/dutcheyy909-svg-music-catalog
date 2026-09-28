@@ -1,7 +1,5 @@
 import importlib.util
 import os
-import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -103,31 +101,28 @@ class GenerateReadmeTests(unittest.TestCase):
             self.assertEqual(output_path.read_text(encoding="utf-8"), "# Repo\n\nGenerated from template\n")
 
     def test_cli_uses_canonical_script_paths_even_with_shadow_structure_in_cwd(self):
-        original_readme = module.README_PATH.read_text(encoding="utf-8")
-        try:
-            module.README_PATH.write_text("# stale\n", encoding="utf-8")
-            self.assertNotEqual(module.README_PATH.read_text(encoding="utf-8"), original_readme)
-            with tempfile.TemporaryDirectory() as temp_dir:
-                temp_path = Path(temp_dir)
-                shadow_template = temp_path / "automation" / "templates"
-                shadow_template.mkdir(parents=True)
-                (shadow_template / "readme-template.md").write_text(
-                    "# SHADOW\n{{project_name}}\n", encoding="utf-8"
-                )
-                (shadow_template / "readme-data.json").write_text(
-                    '{"project_name": "shadow"}', encoding="utf-8"
-                )
+        expected_readme = module.render(module.load_template(), module.load_sections())
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            shadow_template = temp_path / "automation" / "templates"
+            shadow_template.mkdir(parents=True)
+            (shadow_template / "readme-template.md").write_text("# SHADOW\n{{project_name}}\n", encoding="utf-8")
+            (shadow_template / "readme-data.json").write_text('{"project_name": "shadow"}', encoding="utf-8")
+            output_path = temp_path / "README.md"
+            output_path.write_text("# stale\n", encoding="utf-8")
+            self.assertNotEqual(output_path.read_text(encoding="utf-8"), expected_readme)
 
-                subprocess.run(
-                    [sys.executable, str(SCRIPT_PATH)],
-                    cwd=temp_path,
-                    check=True,
-                )
+            original_output = module.README_PATH
+            original_cwd = Path.cwd()
+            try:
+                module.README_PATH = output_path
+                os.chdir(temp_path)
+                module.main()
+            finally:
+                os.chdir(original_cwd)
+                module.README_PATH = original_output
 
-                self.assertFalse((temp_path / "README.md").exists())
-                self.assertEqual(module.README_PATH.read_text(encoding="utf-8"), original_readme)
-        finally:
-            module.README_PATH.write_text(original_readme, encoding="utf-8")
+            self.assertEqual(output_path.read_text(encoding="utf-8"), expected_readme)
 
 
 if __name__ == "__main__":
