@@ -17,6 +17,32 @@ spec.loader.exec_module(module)
 
 
 class GenerateReadmeTests(unittest.TestCase):
+    def test_generator_paths_are_resolved_from_script_location(self):
+        script_dir = SCRIPT_PATH.parent
+        automation_dir = script_dir.parent
+        repo_root = automation_dir.parent
+        self.assertEqual(module.SCRIPT_DIR, script_dir)
+        self.assertEqual(module.AUTOMATION_DIR, automation_dir)
+        self.assertEqual(module.REPO_ROOT, repo_root)
+        self.assertEqual(module.TEMPLATE_PATH, automation_dir / "templates" / "readme-template.md")
+        self.assertEqual(module.DATA_PATH, automation_dir / "templates" / "readme-data.json")
+        self.assertEqual(module.README_PATH, repo_root / "README.md")
+
+    def test_repository_has_single_canonical_readme_generator(self):
+        generator_paths = sorted(REPO_ROOT.rglob("generate-readme.py"))
+        self.assertEqual(generator_paths, [SCRIPT_PATH])
+        self.assertFalse(
+            (
+                REPO_ROOT
+                / "automation"
+                / "automation"
+                / "templates"
+                / "automation"
+                / "scripts"
+                / "generate-readme.py"
+            ).exists()
+        )
+
     def test_template_matches_canonical_sections(self):
         self.assertEqual(
             module.load_template(),
