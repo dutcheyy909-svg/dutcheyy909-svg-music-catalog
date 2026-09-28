@@ -104,21 +104,29 @@ class GenerateReadmeTests(unittest.TestCase):
 
     def test_cli_uses_canonical_script_paths_even_with_shadow_structure_in_cwd(self):
         original_readme = module.README_PATH.read_text(encoding="utf-8")
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
-            shadow_template = temp_path / "automation" / "templates"
-            shadow_template.mkdir(parents=True)
-            (shadow_template / "readme-template.md").write_text("# SHADOW\n{{project_name}}\n", encoding="utf-8")
-            (shadow_template / "readme-data.json").write_text('{"project_name": "shadow"}', encoding="utf-8")
+        try:
+            module.README_PATH.write_text("# stale\n", encoding="utf-8")
+            with tempfile.TemporaryDirectory() as temp_dir:
+                temp_path = Path(temp_dir)
+                shadow_template = temp_path / "automation" / "templates"
+                shadow_template.mkdir(parents=True)
+                (shadow_template / "readme-template.md").write_text(
+                    "# SHADOW\n{{project_name}}\n", encoding="utf-8"
+                )
+                (shadow_template / "readme-data.json").write_text(
+                    '{"project_name": "shadow"}', encoding="utf-8"
+                )
 
-            subprocess.run(
-                [sys.executable, str(SCRIPT_PATH)],
-                cwd=temp_path,
-                check=True,
-            )
+                subprocess.run(
+                    [sys.executable, str(SCRIPT_PATH)],
+                    cwd=temp_path,
+                    check=True,
+                )
 
-            self.assertFalse((temp_path / "README.md").exists())
-            self.assertEqual(module.README_PATH.read_text(encoding="utf-8"), original_readme)
+                self.assertFalse((temp_path / "README.md").exists())
+                self.assertEqual(module.README_PATH.read_text(encoding="utf-8"), original_readme)
+        finally:
+            module.README_PATH.write_text(original_readme, encoding="utf-8")
 
 
 if __name__ == "__main__":
