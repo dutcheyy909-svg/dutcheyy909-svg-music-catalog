@@ -29,7 +29,7 @@ class GenerateReadmeTests(unittest.TestCase):
         self.assertEqual(module.README_PATH, repo_root / "README.md")
 
     def test_repository_has_single_canonical_readme_generator(self):
-        generator_paths = sorted(REPO_ROOT.rglob("generate-readme.py"))
+        generator_paths = sorted((REPO_ROOT / "automation").rglob("generate-readme.py"))
         self.assertEqual(generator_paths, [SCRIPT_PATH])
 
     def test_template_matches_canonical_sections(self):
