@@ -106,6 +106,7 @@ class GenerateReadmeTests(unittest.TestCase):
         original_readme = module.README_PATH.read_text(encoding="utf-8")
         try:
             module.README_PATH.write_text("# stale\n", encoding="utf-8")
+            self.assertNotEqual(module.README_PATH.read_text(encoding="utf-8"), original_readme)
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_path = Path(temp_dir)
                 shadow_template = temp_path / "automation" / "templates"
