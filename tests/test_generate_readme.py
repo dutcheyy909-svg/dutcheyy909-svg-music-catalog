@@ -1,5 +1,7 @@
 import importlib.util
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -99,6 +101,24 @@ class GenerateReadmeTests(unittest.TestCase):
                 module.README_PATH = original_output
 
             self.assertEqual(output_path.read_text(encoding="utf-8"), "# Repo\n\nGenerated from template\n")
+
+    def test_cli_uses_canonical_script_paths_even_with_shadow_structure_in_cwd(self):
+        original_readme = module.README_PATH.read_text(encoding="utf-8")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            shadow_template = temp_path / "automation" / "templates"
+            shadow_template.mkdir(parents=True)
+            (shadow_template / "readme-template.md").write_text("# SHADOW\n{{project_name}}\n", encoding="utf-8")
+            (shadow_template / "readme-data.json").write_text('{"project_name": "shadow"}', encoding="utf-8")
+
+            subprocess.run(
+                [sys.executable, str(SCRIPT_PATH)],
+                cwd=temp_path,
+                check=True,
+            )
+
+            self.assertFalse((temp_path / "README.md").exists())
+            self.assertEqual(module.README_PATH.read_text(encoding="utf-8"), original_readme)
 
 
 if __name__ == "__main__":
