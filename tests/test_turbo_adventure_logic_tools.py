@@ -207,6 +207,17 @@ def test_write_latest_metadata_cleans_up_temp_file_when_replace_fails(metadata_d
     assert list(output_path.parent.glob("*.tmp")) == []
 
 
+def test_write_latest_metadata_cleans_up_temp_file_when_write_fails(metadata_dir, tmp_path, monkeypatch):
+    output_path = tmp_path / "generated" / "latest_metadata.json"
+    monkeypatch.setattr(extract_metadata.json, "dumps", lambda *args, **kwargs: "\ud800")
+
+    with pytest.raises(UnicodeEncodeError):
+        extract_metadata.write_latest_metadata(output_path=output_path, metadata_dir=metadata_dir)
+
+    assert not output_path.exists()
+    assert list(output_path.parent.glob("*.tmp")) == []
+
+
 def test_generated_latest_outputs_are_not_retreated_as_source_tracks(metadata_dir):
     derived_output = metadata_dir / "custom_latest_snapshot.json"
     extract_metadata.write_latest_metadata(output_path=derived_output, metadata_dir=metadata_dir)
