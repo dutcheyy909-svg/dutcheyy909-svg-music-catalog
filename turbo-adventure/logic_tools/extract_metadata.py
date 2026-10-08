@@ -134,7 +134,7 @@ def write_latest_metadata(
 ) -> Path:
     latest_metadata = build_latest_metadata(metadata_dir)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    temp_output_path = None
+    temp_output_path: Path | None = None
     try:
         with tempfile.NamedTemporaryFile(
             "w",
@@ -146,8 +146,9 @@ def write_latest_metadata(
         ) as temp_file:
             temp_output_path = Path(temp_file.name)
             temp_file.write(json.dumps(latest_metadata, indent=2, ensure_ascii=False) + "\n")
+
         temp_output_path.replace(output_path)
-    except Exception:
+    except BaseException:
         if temp_output_path is not None:
             temp_output_path.unlink(missing_ok=True)
         raise
